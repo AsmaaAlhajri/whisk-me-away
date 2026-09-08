@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisk Me Away &middot; Our Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="story">
+
+<div class="page">
+  <div class="wrap">
+
+    <!-- ================= HERO ================= -->
+    <header class="cat-hero">
+      <a class="crumb" href="home.html" data-nav>
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/>
+        </svg>
+        Back to home
+      </a>
+      <p class="section__jp">Monogatari</p>
+      <h1 class="section__title">Our<br><em>story</em></h1>
+      <p class="section__text">
+        We are a small Kuwaiti shop with one obsession: green tea leaves, ground
+        slowly, treated properly, and drunk while they are still fresh.
+      </p>
+    </header>
+
+    <!-- ================= WHAT MATCHA IS ================= -->
+    <section class="story-split">
+      <div class="story-copy">
+        <p class="section__jp">Overview</p>
+        <h2 class="story-copy__title">What you are<br><em>actually drinking</em></h2>
+        <p>
+          Most tea is an infusion: you steep leaves, then throw them away. Matcha is
+          not. The whole leaf is stone-ground into powder and whisked into water, so
+          you swallow the leaf itself. That is why one bowl tastes so much fuller
+          than a teabag, and why the quality of the leaf has nowhere to hide.
+        </p>
+        <p>
+          The plants are covered for roughly three to four weeks before picking. Kept
+          out of direct sun, the leaf makes more chlorophyll and more of the amino
+          acid that gives matcha its savoury, almost sweet depth &mdash; and less of
+          the bitterness that heavy sunlight builds up. That shading is the whole
+          difference between matcha and ordinary green tea.
+        </p>
+        <p>
+          After picking, the leaves are steamed within hours, dried, and stripped of
+          every stem and vein. What is left is called tencha, and only tencha becomes
+          matcha. Granite wheels then turn slowly enough to grind about 30 to 40
+          grams an hour &mdash; a full tin takes most of a working day.
+        </p>
+      </div>
+
+      <aside class="story-stats">
+        <div class="stat">
+          <div class="stat__num">20&ndash;30</div>
+          <div class="stat__label">Days in shade<small>before the leaf is picked</small></div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">40g</div>
+          <div class="stat__label">Per hour<small>from one granite stone mill</small></div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">1<span>st</span></div>
+          <div class="stat__label">Harvest only<small>for everything ceremonial-grade</small></div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">5&micro;m</div>
+          <div class="stat__label">Particle size<small>finer than a grain of flour</small></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ================= THE MAP ================= -->
+    <section class="section" id="map">
+      <div class="section__head">
+        <p class="section__jp">Sanchi &middot; Where it grows</p>
+        <h2 class="section__title">Five hillsides<br><em>in Japan</em></h2>
+        <p class="section__text">
+          Every tin we sell comes from one of these five places. Hover a pin
+          &mdash; or tap it &mdash; to see what we buy there.
+        </p>
+      </div>
+
+      <div class="map-layout">
+
+        <!-- illustrative map of Japan -->
+        <div class="map-panel">
+          <!-- The outline is plotted from real latitude/longitude, then
+               simplified: every point below is a genuine coastal city or
+               cape, so the shape is roughly right even though it is drawn
+               as straight segments. -->
+          <svg class="japan" viewBox="0 14 460 496" role="img"
+               aria-label="Illustrative map of Japan with five tea-growing regions marked">
+
+            <defs>
+              <pattern id="sea" width="26" height="26" patternUnits="userSpaceOnUse">
+                <path d="M26 0H0V26" fill="none" stroke="rgba(249,221,216,.10)" stroke-width="1"/>
+              </pattern>
+              <linearGradient id="land" x1="0" y1="0" x2="0.6" y2="1">
+                <stop offset="0%"   stop-color="#9BB585"/>
+                <stop offset="55%"  stop-color="#6E8C58"/>
+                <stop offset="100%" stop-color="#446034"/>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="14" width="460" height="496" fill="url(#sea)"/>
+
+            <g class="japan__land" fill="url(#land)" stroke="#F9DDD8" stroke-width="1.8"
+               stroke-linejoin="round" stroke-linecap="round">
+              <!-- Hokkaido: Wakkanai, Shiretoko, Nemuro, Erimo, Hakodate, Oshima -->
+              <path d="M346 39 L400 58 L434 73 L441 104 L412 114 L392 132 L381 148
+                       L360 140 L343 126 L330 140 L323 151 L304 163 L300 155
+                       L318 138 L328 120 L328 107 L336 96 L343 86 L342 62 Z"/>
+              <!-- Honshu: Aomori down the Sea of Japan coast to Shimonoseki,
+                   back along the Pacific through the Kii peninsula and Tokyo -->
+              <path d="M328 160 L321 182 L306 216 L280 272 L221 312 L162 346
+                       L93 380 L81 393 L120 380 L155 371 L186 371 L201 411
+                       L228 371 L260 374 L277 374 L306 343 L326 340 L328 259
+                       L353 219 L340 191 Z"/>
+              <!-- Shikoku -->
+              <path d="M125 399 L157 383 L172 390 L162 414 L145 408 L132 433 L123 417 Z"/>
+              <!-- Kyushu: Kokura, Nagasaki, Kagoshima, Cape Sata, Miyazaki, Oita -->
+              <path d="M81 396 L69 405 L57 433 L64 442 L73 467 L76 486 L85 470
+                       L93 458 L98 417 Z"/>
+            </g>
+
+            <!-- pins are injected by story.js -->
+            <g id="pins"></g>
+          </svg>
+          <p class="map-note">Illustrative map, not to scale.</p>
+        </div>
+
+        <!-- region list + detail card -->
+        <div class="map-side">
+          <ul class="region-list" id="regionList"></ul>
+          <div class="region-card" id="regionCard"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= THE JOURNEY ================= -->
+    <section class="section">
+      <div class="section__head">
+        <p class="section__jp">Tabi &middot; The journey</p>
+        <h2 class="section__title">Hillside<br><em>to Kuwait</em></h2>
+      </div>
+
+      <ol class="journey">
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>Shaded</h4>
+          <p>Reed screens go over the field three to four weeks before picking.</p>
+        </li>
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>Picked</h4>
+          <p>Only the first harvest, in the spring, and only the youngest leaves.</p>
+        </li>
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>Steamed</h4>
+          <p>Within hours, to stop oxidation and lock the colour in.</p>
+        </li>
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>De-stemmed</h4>
+          <p>Stems and veins are blown away. What is left is tencha.</p>
+        </li>
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>Stone-milled</h4>
+          <p>Granite wheels, turning slowly so the powder never heats up.</p>
+        </li>
+        <li class="journey__item">
+          <span class="journey__dot"></span>
+          <h4>Sealed &amp; flown</h4>
+          <p>Nitrogen-flushed tins, air-freighted, and kept cold in our Kuwait store.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ================= CLOSING ================= -->
+    <section class="story-close">
+      <p class="section__jp">Yakusoku &middot; Our promise</p>
+      <h2 class="section__title">Small tins,<br><em>bought often</em></h2>
+      <p class="section__text">
+        Matcha fades. Light, heat and air pull the green out of it within weeks of
+        opening. So we buy in small lots, stamp every tin with the month it was
+        ground, and would rather run out than sell you something tired.
+      </p>
+      <div class="hero__cta" style="margin-top:30px">
+        <a class="btn btn--primary" href="categories.html" data-nav>Shop the shelves</a>
+        <a class="btn btn--ghost" href="steps.html" data-nav>How to whisk it</a>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot__brand">Whisk Me Away</div>
+  <p>Kuwait &middot; Delivery across all governorates &middot; Made with matcha</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/story.js"></script>
+</body>
+</html>

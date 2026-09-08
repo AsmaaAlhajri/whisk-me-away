@@ -1,0 +1,7 @@
+# OS and editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# local preview config for the Claude Code browser pane
+.claude/

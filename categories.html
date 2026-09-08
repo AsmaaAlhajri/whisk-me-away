@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisk Me Away &middot; Categories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="categories">
+
+<div class="page">
+  <div class="wrap">
+
+    <header class="cat-hero">
+      <!-- back to the home page -->
+      <a class="crumb" href="home.html" data-nav>
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/>
+        </svg>
+        Back to home
+      </a>
+      <p class="section__jp" id="greeting">Categories</p>
+      <h1 class="section__title">Everything for<br><em>your bowl</em></h1>
+      <p class="section__text">
+        Seven shelves, chosen slowly. Tap any one to see what is on it.
+      </p>
+    </header>
+
+    <section class="cat-grid" id="catGrid" style="padding-bottom:90px">
+      <!-- filled by categories.js -->
+    </section>
+
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot__brand">Whisk Me Away</div>
+  <p>Kuwait &middot; Delivery across all governorates &middot; Made with matcha</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/categories.js"></script>
+</body>
+</html>

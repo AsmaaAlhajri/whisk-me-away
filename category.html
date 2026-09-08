@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisk Me Away &middot; Category</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="category">
+
+<div class="page">
+  <div class="wrap">
+
+    <header class="cat-hero">
+      <a class="crumb" href="categories.html" data-nav>
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/>
+        </svg>
+        All categories
+      </a>
+      <p class="section__jp" id="catJp">&nbsp;</p>
+      <h1 class="section__title" id="catName">&nbsp;</h1>
+      <p class="section__text cat-blurb" id="catBlurb">&nbsp;</p>
+    </header>
+
+    <section class="prod-grid" id="prodGrid"><!-- filled by category.js --></section>
+
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot__brand">Whisk Me Away</div>
+  <p>Kuwait &middot; Delivery across all governorates &middot; Made with matcha</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/category.js"></script>
+</body>
+</html>
