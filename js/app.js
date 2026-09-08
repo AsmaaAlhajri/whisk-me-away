@@ -87,84 +87,20 @@ function goTo(url){
 }
 
 /* ============================================================
-   3. THE FOREST SCENE
-   Layered SVG silhouettes + fog + fireflies + film grain.
+   3. THE BACKDROP
+   A calm tinted page: soft blush and sage blooms on warm white.
+   All of the colour lives in .scene in the stylesheet, so this
+   only has to put the element on the page.
    ============================================================ */
 function buildScene(){
   const scene = document.createElement('div');
   scene.className = 'scene';
 
-  scene.innerHTML = `
-    <div class="fog fog--2"></div>
-    <div class="fog fog--1"></div>
-
-    <!-- far mountains -->
-    <div class="layer layer--far" data-depth="6">
-      <svg viewBox="0 0 1440 420" preserveAspectRatio="none">
-        <path fill="#2C4524" d="M0 300 L150 190 L260 260 L400 130 L560 250 L700 160
-          L860 270 L1000 180 L1160 265 L1300 175 L1440 280 L1440 420 L0 420 Z"/>
-      </svg>
-    </div>
-
-    <!-- mid treeline -->
-    <div class="layer layer--mid" data-depth="14">
-      <svg viewBox="0 0 1440 380" preserveAspectRatio="none">
-        <path fill="#25391E" d="M0 380 V250 l40-70 30 70 30-95 34 95 26-60 40 60 34-85
-          32 85 40-55 36 55 34-100 34 100 30-70 32 70 40-90 36 90 32-55 34 55 30-95
-          34 95 30-60 36 60 34-85 34 85 30-70 34 70 40-95 34 95 30-55 34 55 32-80
-          34 80 30-60 36 60 34-90 34 90 30-50 34 50 V380 Z"/>
-      </svg>
-    </div>
-
-    <!-- near trunks + ferns -->
-    <div class="layer layer--near" data-depth="26">
-      <svg viewBox="0 0 1440 340" preserveAspectRatio="none">
-        <path fill="#16240F" d="M0 340 V300 q60-40 120-10 t120 0 120-30 120 20 120-25
-          120 15 120-20 120 25 120-15 120 20 120-10 V340 Z"/>
-        <rect x="70"   y="0" width="26" height="340" fill="#16240F"/>
-        <rect x="300"  y="0" width="18" height="340" fill="#16240F" opacity=".9"/>
-        <rect x="1080" y="0" width="22" height="340" fill="#16240F" opacity=".95"/>
-        <rect x="1330" y="0" width="30" height="340" fill="#16240F"/>
-        <path fill="#16240F" d="M96 90 q70-20 96-56 -10 46-56 70 z"/>
-        <path fill="#16240F" d="M1330 120 q-70-22-96-58 10 48 56 72 z"/>
-      </svg>
-    </div>
-  `;
-
-  /* fireflies drifting up through the trees */
-  for(let i = 0; i < 16; i++){
-    const mote = document.createElement('span');
-    mote.className = 'mote';
-    mote.style.left = Math.random() * 100 + '%';
-    mote.style.bottom = (Math.random() * 40) + '%';
-    mote.style.animationDuration = (14 + Math.random() * 18) + 's';
-    mote.style.animationDelay = (-Math.random() * 20) + 's';
-    mote.style.opacity = 0.4 + Math.random() * 0.5;
-    scene.appendChild(mote);
-  }
-
-  const grain = document.createElement('div');
-  grain.className = 'grain';
-
   const canvas = document.createElement('canvas');
   canvas.id = 'sakura';
 
   document.body.prepend(canvas);
-  document.body.prepend(grain);
   document.body.prepend(scene);
-
-  /* gentle parallax on mouse move (desktop only) */
-  if(window.matchMedia('(hover:hover)').matches){
-    const layers = $$('.layer', scene);
-    window.addEventListener('mousemove', e => {
-      const x = (e.clientX / window.innerWidth  - 0.5);
-      const y = (e.clientY / window.innerHeight - 0.5);
-      layers.forEach(l => {
-        const d = Number(l.dataset.depth || 10);
-        l.style.transform = `translate(${-x * d}px, ${-y * d * 0.4}px)`;
-      });
-    });
-  }
 }
 
 /* ============================================================
@@ -179,7 +115,11 @@ function startSakura(count){
   const ctx = canvas.getContext('2d');
   let w, h, petals = [];
 
-  const COLORS = ['#F3BABA', '#F8D0C8', '#F9DDD8', '#FFF0EC'];
+  /* On the old dark page almost-white petals showed up well. On a
+     pale page they vanish, so these are the two strongest pinks in
+     the palette, outlined in a darker shade of the same blush. */
+  const COLORS = ['#F3BABA', '#F8D0C8'];
+  const OUTLINE = 'rgba(199,136,139,.55)';
 
   function resize(){
     w = canvas.width  = window.innerWidth;
@@ -197,29 +137,26 @@ function startSakura(count){
       spin: (Math.random() - 0.5) * 0.03,
       angle: Math.random() * Math.PI * 2,
       color: COLORS[(Math.random() * COLORS.length) | 0],
-      alpha: 0.45 + Math.random() * 0.5
+      alpha: 0.55 + Math.random() * 0.4
     };
   }
 
-  /* one petal: two rounded lobes with a soft notch, like a real blossom */
+  /* one petal: two rounded lobes, outlined so it reads on pale paper */
   function drawPetal(p){
     const s = p.size;
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.angle);
     ctx.globalAlpha = p.alpha;
-    ctx.fillStyle = p.color;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.bezierCurveTo(-s * 0.6,  -s * 0.4, -s * 0.5, -s * 1.2, 0, -s);
     ctx.bezierCurveTo( s * 0.5,  -s * 1.2,  s * 0.6, -s * 0.4, 0,  0);
+    ctx.fillStyle = p.color;
     ctx.fill();
-    /* the little notch at the tip */
-    ctx.globalAlpha = p.alpha * 0.35;
-    ctx.beginPath();
-    ctx.ellipse(0, -s * 0.95, s * 0.14, s * 0.2, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFF8F5';
-    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = OUTLINE;
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -253,9 +190,9 @@ function startSakura(count){
    5. ICONS
    ============================================================ */
 const ICONS = {
-  leaf: `<svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="#F3BABA" stroke-width="1.6"
+  leaf: `<svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="#5B744B" stroke-width="1.5"
           stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 4C10 4 4 9 4 16c0 2 1 4 1 4s7 0 11-4c3-3 4-8 4-12z"/>
+          <path d="M20 4C10 4 4 9 4 16c0 2 1 4 1 4s7 0 11-4c3-3 4-8 4-12z" fill="#F3BABA"/>
           <path d="M5 20c4-6 8-9 13-12"/>
         </svg>`,
   cart: `<svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/>
@@ -629,12 +566,9 @@ document.addEventListener('DOMContentLoaded', () => {
   enforceRemember();
   buildScene();
 
-  /* petal density per page */
-  const petals = {
-    login: 34, signup: 26, home: 32, categories: 30,
-    story: 18, steps: 14, category: 16, account: 14
-  };
-  startSakura(petals[page] ?? 20);
+  /* Sakura falls on the home page only - everywhere else stays
+     clean. Change this line if you want it on more pages. */
+  if(page === 'home') startSakura(20);
 
   /* login + signup have no top bar: there is no cart or account yet */
   if(page !== 'login' && page !== 'signup'){

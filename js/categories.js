@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('catGrid');
   grid.innerHTML = CATEGORIES.map(cat => `
     <a class="cat-card" href="category.html?cat=${cat.id}" data-nav
-       style="background-image:linear-gradient(170deg,rgba(30,48,24,.28),rgba(20,32,15,.78)),${cat.grad}">
+       style="background-image:linear-gradient(180deg,rgba(30,48,24,.04) 30%,rgba(30,48,24,.60)),${cat.grad}">
       <span class="cat-card__glow"></span>
       <div class="cat-card__art">${ART[cat.id]}</div>
       <div class="cat-card__body">

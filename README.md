@@ -1,7 +1,7 @@
 # Whisk Me Away
 
-A matcha store for Kuwait. Cinematic Japanese-forest theme with a soft, girly
-palette, falling sakura, and a full shopping flow — all plain HTML, CSS and JS.
+A matcha store for Kuwait. Light, modern and editorial: deep green type on warm
+white, blush accents, and a full shopping flow — all plain HTML, CSS and JS.
 
 ## Run it
 
@@ -60,8 +60,16 @@ Log out. Login and signup have no top bar, since there is no cart or account yet
 — if you want it there too, remove the `page !== 'login'` check at the bottom of
 `js/app.js`.
 
-**Sakura** is drawn on a `<canvas>` in `js/app.js` (`startSakura`). Petal counts
-per page are in the `petals` object at the bottom of that file.
+**Sakura** is drawn on a `<canvas>` in `js/app.js` (`startSakura`) and falls on
+the **home page only**. The single line that decides this is at the bottom of
+that file: `if(page === 'home') startSakura(20)`. Raise the number for more
+petals, or add other page names to put it back on more pages.
+
+**The theme** lives entirely in the tokens at the top of `css/style.css`. The
+seven brand colours are unchanged; what changed is their roles — the greens are
+now the ink and the pinks are the accents, on a warm white page. Artwork that
+sits on a coloured tile (category cards, product images, the step animations)
+still uses cream strokes; artwork on white uses pine and moss instead.
 
 **The map** on `story.html` is drawn from real latitude and longitude. The
 formula is at the top of `js/story.js`, so to add a sixth region you only need

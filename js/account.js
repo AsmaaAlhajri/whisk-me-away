@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(orders.length === 0){
     box.innerHTML = `
       <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#F3BABA" stroke-width="1.3" stroke-linecap="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#799567" stroke-width="1.4" stroke-linecap="round">
           <path d="M3 10h18c0 6-4 10-9 10s-9-4-9-10z"/><path d="M3 10h18"/>
           <path d="M8 6c1-1.5.5-2.5 0-3M12 5c1-1.5.5-2.5 0-3M16 6c1-1.5.5-2.5 0-3"/>
         </svg>
