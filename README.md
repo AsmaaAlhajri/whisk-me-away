@@ -34,7 +34,7 @@ matcha drinks and whisk holders.
 
 ```
 index.html  signup.html  home.html  categories.html
-category.html  story.html  steps.html  account.html
+category.html  customise.html  story.html  steps.html  account.html
 css/style.css       all styling, numbered sections 1-22
 js/data.js          categories, products, prices, SVG artwork
 js/app.js           forest scene, sakura, top bar, menu modal, cart, checkout
@@ -44,15 +44,32 @@ js/categories.js    the seven category cards
 js/category.js      the product grid
 js/story.js         the five growing regions and the map pins
 js/steps.js         tap-to-play for the step animations (hover is pure CSS)
+js/customise.js     the milk / foam / syrup / size options page
+js/supabase.js      database connection (publishable key, safe to commit)
 js/account.js       details + orders
 media/matcha.mp4    the looping video behind the home hero
 ```
 
 ## How it works
 
-**No backend.** Accounts, carts and orders live in `localStorage` under keys
-starting with `wma_`. Carts and orders are stored per customer, so two accounts
-never see each other's basket.
+**Supabase backend.** Accounts, baskets and orders live in Postgres on Supabase,
+not in the browser. `js/supabase.js` holds the project URL and the *publishable*
+key - both are safe in front-end code, because every table is protected by Row
+Level Security keyed on `auth.uid()`. Someone who reads the page source and
+calls the API with that key gets an empty list back; writes are refused.
+
+Tables: `profiles` (name, phone, area), `cart_items` (one row per configured
+basket line), `orders` and `order_items`. A trigger on signup copies name,
+phone and area into `profiles` automatically.
+
+**Login is real.** Supabase Auth hashes and checks passwords on its servers -
+the site never sees or stores one. Note that Supabase deliberately will not say
+whether a failed login was a wrong email or a wrong password, so the error
+message covers both.
+
+The rest of the app is written synchronously, so `js/app.js` loads the session
+and basket once at boot and exposes an `AppReady` promise. Every page script
+starts with `await AppReady`, which is why none of them read an empty basket.
 
 **Top bar** — on every shop page: a cart button (with a live count badge) and a
 menu button. The menu opens a medium, centred card with a 50%-transparent pink
@@ -91,7 +108,14 @@ until you hover; `js/steps.js` only adds the same effect on tap for phones.
 
 **Order status** advances by itself in the demo: preparing for 2 minutes, then
 on the way, then delivered. The two numbers are at the top of `js/account.js`.
-Replace `statusOf()` with a real API call when you have a backend.
+The database stores a real `status` column, so swap `statusOf()` for that column
+once someone is actually updating orders.
+
+**Customising an order.** Drinks and matcha powder open `customise.html` before
+going in the basket; everything else adds in one click. The choices live in
+`OPTION_GROUPS` in `js/data.js`, keyed by category, so adding a syrup is one
+line of data. A basket line is identified by product *and* options, so an
+oat-milk latte and an almond-milk latte are separate lines.
 
 ## Adding a product
 
@@ -136,9 +160,19 @@ Browsers cache `.js` and `.css` hard on `localhost`. If a change does not show
 up, do a hard refresh: **Ctrl+F5** (or Ctrl+Shift+R). A normal refresh will often
 serve you the old file.
 
-## Two things to know before you submit
+## One setting to check in Supabase
 
-1. **Passwords are stored in plain text in the browser.** That is fine for a
-   bootcamp demo but must never ship. A real store hashes passwords on a server.
-2. Anyone can read or edit `localStorage` from devtools, so nothing here is
-   secure. It is a front-end prototype, not a real shop.
+New Supabase projects require customers to confirm their email before they can
+log in. To keep signup instant, turn it off:
+
+**Supabase dashboard → Authentication → Sign In / Providers → Email →
+turn off "Confirm email" → Save.**
+
+The code copes either way: if confirmation is on, signup says to check your
+inbox instead of logging you straight in.
+
+## Still worth knowing
+
+Passwords are now hashed by Supabase, which fixes the big one. What remains is
+ordinary demo-shop shape: there is no payment step, order status is faked on a
+timer, and the product catalogue is a JavaScript file rather than database rows.

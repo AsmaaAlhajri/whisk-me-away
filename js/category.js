@@ -3,7 +3,9 @@
    Which one it shows comes from the URL: category.html?cat=bowls
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await AppReady;          /* session + basket are loaded by app.js */
+
   if(!Store.currentUser()) return;
 
   const params = new URLSearchParams(location.search);

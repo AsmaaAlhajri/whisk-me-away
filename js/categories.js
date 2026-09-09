@@ -2,7 +2,9 @@
    categories.js - the seven category cards
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await AppReady;          /* session + basket are loaded by app.js */
+
   const user = Store.currentUser();
   if(!user) return;                       // app.js already redirects
 

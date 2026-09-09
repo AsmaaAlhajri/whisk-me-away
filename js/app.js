@@ -8,60 +8,124 @@
    ============================================================ */
 
 /* ============================================================
-   1. STORAGE
-   Everything lives in localStorage so the site works with no
-   backend. Keys are prefixed with "wma_".
-   NOTE: this is a bootcamp demo - passwords are stored in plain
-   text in the browser. Never do this on a real store.
+   1. STORAGE - Supabase
+
+   Customers, baskets and orders live in Postgres. Every table is
+   protected by Row Level Security keyed on auth.uid(), so the
+   browser can only ever reach the signed-in customer's own rows.
+
+   The rest of the app is written synchronously, so the session and
+   basket are loaded ONCE at boot (see AppReady at the bottom of
+   this file) and the getters below just read that in-memory copy.
+   Writes update memory immediately and push to Supabase right
+   after, so the interface never waits on the network.
    ============================================================ */
 const Store = {
-  read(key, fallback){
-    try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-    catch(e){ return fallback; }
-  },
-  write(key, value){
-    try{ localStorage.setItem(key, JSON.stringify(value)); }
-    catch(e){ /* storage blocked - the page still works, nothing persists */ }
+  _user: null,
+  _cart: [],
+  _pushing: null,
+
+  /* --- who is signed in --- */
+  currentUser(){ return this._user; },
+  session(){ return this._user ? this._user.email : null; },
+
+  async load(){
+    const {data:{user}} = await sb.auth.getUser();
+    if(!user){ this._user = null; this._cart = []; return null; }
+
+    const {data:profile} = await sb.from('profiles')
+      .select('name,phone,area,created_at')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const meta = user.user_metadata || {};
+    this._user = {
+      id:    user.id,
+      email: user.email,
+      name:  (profile && profile.name)  || meta.name  || '',
+      phone: (profile && profile.phone) || meta.phone || '',
+      area:  (profile && profile.area)  || meta.area  || '',
+      joined:(profile && profile.created_at) || user.created_at
+    };
+
+    await this.loadCart();
+    return this._user;
   },
 
-  /* --- users --- */
-  users(){ return this.read('wma_users', []); },
-  findUser(email){
-    return this.users().find(u => u.email.toLowerCase() === String(email).toLowerCase()) || null;
-  },
-  addUser(user){
-    const users = this.users();
-    users.push(user);
-    this.write('wma_users', users);
+  async logout(){
+    await sb.auth.signOut();
+    this._user = null;
+    this._cart = [];
   },
 
-  /* --- session --- */
-  session(){ return this.read('wma_session', null); },
-  login(email, remember = true){
-    this.write('wma_session', email);
-    this.write('wma_remember', !!remember);
-    /* a marker that only lives as long as this browser tab */
-    try{ sessionStorage.setItem('wma_tab', '1'); }catch(e){}
-  },
-  logout(){
-    localStorage.removeItem('wma_session');
-    localStorage.removeItem('wma_remember');
-    try{ sessionStorage.removeItem('wma_tab'); }catch(e){}
-  },
-  currentUser(){
-    const email = this.session();
-    return email ? this.findUser(email) : null;
+  /* --- the basket --- */
+  cart(){ return this._cart; },
+
+  async loadCart(){
+    if(!this._user){ this._cart = []; return; }
+    const {data} = await sb.from('cart_items')
+      .select('line_key,product_id,qty,opts')
+      .eq('user_id', this._user.id);
+    this._cart = (data || []).map(r => ({
+      key: r.line_key, id: r.product_id, qty: r.qty, opts: r.opts
+    }));
   },
 
-  /* --- cart (per user) --- */
-  cartKey(){ return 'wma_cart_' + (this.session() || 'guest'); },
-  cart(){ return this.read(this.cartKey(), []); },
-  saveCart(items){ this.write(this.cartKey(), items); },
+  saveCart(items){
+    this._cart = items;
+    this._pushCart();
+  },
 
-  /* --- orders (per user) --- */
-  orderKey(){ return 'wma_orders_' + (this.session() || 'guest'); },
-  orders(){ return this.read(this.orderKey(), []); },
-  saveOrders(list){ this.write(this.orderKey(), list); }
+  /* A basket is a handful of rows, so replacing it wholesale is
+     simpler than working out which single line changed.
+
+     These writes MUST be serialised. Two quick taps used to fire two
+     overlapping delete-then-insert cycles, and the second insert hit
+     the unique(user_id, line_key) constraint against a row the first
+     had just re-added - so the whole insert failed and a line went
+     missing. Chaining each push onto the last, and reading the cart
+     when the push actually runs, means the final write always holds
+     the current basket. _pushing lets checkout wait for it to land. */
+  _pushCart(){
+    if(!this._user) return Promise.resolve();
+
+    const run = async () => {
+      const uid  = this._user.id;
+      const rows = this._cart.map(i => ({
+        user_id:    uid,
+        line_key:   keyOf(i),
+        product_id: i.id,
+        qty:        i.qty,
+        opts:       i.opts || null
+      }));
+      await sb.from('cart_items').delete().eq('user_id', uid);
+      if(rows.length) await sb.from('cart_items').insert(rows);
+    };
+
+    /* run on both settle paths, so one failed push never jams the queue */
+    this._pushing = (this._pushing || Promise.resolve()).then(run, run);
+    return this._pushing;
+  },
+
+  /* --- past orders, newest first --- */
+  async orders(){
+    if(!this._user) return [];
+    const {data, error} = await sb.from('orders')
+      .select('code,status,total,placed_at,order_items(name,qty,price,options)')
+      .eq('user_id', this._user.id)
+      .order('placed_at', {ascending:false});
+
+    if(error) return [];
+    return (data || []).map(o => ({
+      id:     o.code,
+      date:   o.placed_at,
+      status: o.status,
+      total:  Number(o.total),
+      items:  (o.order_items || []).map(i => ({
+        name: i.name, qty: i.qty, price: Number(i.price), options: i.options
+      }))
+    }));
+  }
 };
 
 /* ============================================================
@@ -346,8 +410,9 @@ function wireChrome(){
     btn.addEventListener('click', () => goTo(btn.dataset.go));
   });
 
-  $('#logoutBtn').addEventListener('click', () => {
-    Store.logout();
+  $('#logoutBtn').addEventListener('click', async () => {
+    try{ localStorage.removeItem('wma_remember'); }catch(e){}
+    await Store.logout();
     goTo('index.html');
   });
 
@@ -485,37 +550,50 @@ function bouncebadge(){
 }
 
 /* turn the basket into an order */
-function checkout(){
+async function checkout(){
   const items = Store.cart();
-  if(items.length === 0) return;
+  const user  = Store.currentUser();
+  if(items.length === 0 || !user) return;
 
   const {total} = cartTotals();
-  const orders = Store.orders();
+  const btn = $('#checkoutBtn');
+  btn.disabled = true;
 
-  const order = {
-    id: 'WMA-' + String(1000 + orders.length + 1),
-    date: new Date().toISOString(),
-    status: 'preparing',
-    total: total,
-    items: items.map(i => {
-      const p = getProduct(i.id);
-      return {
-        name: p.name,
-        qty: i.qty,
-        price: linePrice(i),
-        options: optionSummary(p, i.opts) || null
-      };
-    })
-  };
+  /* let any in-flight basket write finish before we read it back */
+  await Store._pushing;
 
-  orders.unshift(order);
-  Store.saveOrders(orders);
+  const {data: order, error} = await sb.from('orders')
+    .insert({user_id: user.id, total})
+    .select('id,code')
+    .single();
+
+  if(error || !order){
+    btn.disabled = false;
+    showToast('Could not place the order. Please try again.');
+    return;
+  }
+
+  const lines = items.map(i => {
+    const p = getProduct(i.id);
+    return {
+      order_id:   order.id,
+      product_id: i.id,
+      name:       p.name,
+      qty:        i.qty,
+      price:      linePrice(i),
+      options:    optionSummary(p, i.opts) || null
+    };
+  });
+  await sb.from('order_items').insert(lines);
+
   Store.saveCart([]);
+  await Store._pushing;
   renderCart();
+  btn.disabled = false;
 
   $('#cartOverlay').classList.remove('is-open');
   $('#cartPanel').classList.remove('is-open');
-  showToast(`Order ${order.id} placed. We are preparing it now.`);
+  showToast(`Order ${order.code} placed. We are preparing it now.`);
 
   setTimeout(() => goTo('account.html'), 1600);
 }
@@ -562,14 +640,17 @@ function revealOnScroll(selector){
    10. AUTH GUARD
    Shop pages are only for logged-in customers.
    ============================================================ */
-/* "Keep me signed in" was unticked? Then the session only lasts
-   as long as the browser tab that created it. */
-function enforceRemember(){
-  if(!Store.session()) return;
-  const remember = Store.read('wma_remember', true);
-  let sameTab = false;
-  try{ sameTab = sessionStorage.getItem('wma_tab') === '1'; }catch(e){ sameTab = true; }
-  if(!remember && !sameTab) Store.logout();
+/* "Keep me signed in" was unticked? Then the session only lasts as
+   long as the browser tab that created it. Supabase keeps its own
+   session in localStorage, so we sign out on the first load in a
+   new tab instead. */
+async function enforceRemember(){
+  let remember = true, sameTab = true;
+  try{
+    remember = localStorage.getItem('wma_remember') !== 'false';
+    sameTab  = sessionStorage.getItem('wma_tab') === '1';
+  }catch(e){ return; }
+  if(!remember && !sameTab) await sb.auth.signOut();
 }
 
 function requireLogin(){
@@ -582,17 +663,24 @@ function requireLogin(){
 
 /* ============================================================
    11. BOOT
-   data-page on <body> decides what gets built.
+
+   AppReady resolves once the Supabase session and basket are in
+   memory. Every page script starts with `await AppReady`, so none
+   of them read an empty Store before it has loaded.
    ============================================================ */
-document.addEventListener('DOMContentLoaded', () => {
+const AppReady = (async () => {
+  await enforceRemember();
+  await Store.load();
+})();
+
+document.addEventListener('DOMContentLoaded', async () => {
   const page = document.body.dataset.page;
 
-  enforceRemember();
   buildScene();
-
-  /* Sakura falls on the home page only - everywhere else stays
-     clean. Change this line if you want it on more pages. */
+  /* Sakura falls on the home page only. */
   if(page === 'home') startSakura(20);
+
+  await AppReady;
 
   /* login + signup have no top bar: there is no cart or account yet */
   if(page !== 'login' && page !== 'signup'){

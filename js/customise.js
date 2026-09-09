@@ -7,7 +7,9 @@
    total, then puts one configured line in the basket.
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await AppReady;          /* session + basket are loaded by app.js */
+
   if(!Store.currentUser()) return;                 // app.js redirects
 
   const params  = new URLSearchParams(location.search);

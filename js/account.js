@@ -29,7 +29,9 @@ function formatDate(iso){
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await AppReady;          /* session + basket are loaded by app.js */
+
   const user = Store.currentUser();
   if(!user) return;
 
@@ -52,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- her orders ---------- */
   const box = document.getElementById('orders');
-  const orders = Store.orders();
+  const orders = await Store.orders();
 
   if(orders.length === 0){
     box.innerHTML = `

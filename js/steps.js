@@ -4,7 +4,9 @@
    This only adds tap-to-play for phones, where there is no hover.
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await AppReady;          /* session + basket are loaded by app.js */
+
   if(!Store.currentUser()) return;
 
   const steps = document.querySelectorAll('.step');
