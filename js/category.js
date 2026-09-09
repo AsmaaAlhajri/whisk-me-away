@@ -33,13 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="prod-card__desc">${esc(p.desc)}</p>
         <div class="prod-card__foot">
           <span class="price">${KD(p.price)} <small>KD</small></span>
-          <button class="add-btn" data-add="${p.id}">Add to basket</button>
+          ${needsOptions(p)
+            ? `<a class="add-btn" href="customise.html?id=${p.id}" data-nav>Customise</a>`
+            : `<button class="add-btn" data-add="${p.id}">Add to basket</button>`}
         </div>
       </div>
     </article>
   `).join('');
 
   /* add to basket, with a short confirmation on the button itself */
+  /* products with options go to customise.html instead of straight in */
+  grid.querySelectorAll('a[data-nav]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      goTo(link.getAttribute('href'));
+    });
+  });
+
   grid.querySelectorAll('[data-add]').forEach(btn => {
     btn.addEventListener('click', () => {
       addToCart(btn.dataset.add);

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisk Me Away &middot; Customise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="customise">
+
+<div class="page">
+  <div class="wrap">
+
+    <header class="cat-hero">
+      <a class="crumb" id="backLink" href="categories.html" data-nav>
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/>
+        </svg>
+        <span id="backLabel">Back</span>
+      </a>
+      <p class="section__jp" id="prodJp">&nbsp;</p>
+      <h1 class="section__title" id="prodName">&nbsp;</h1>
+      <p class="section__text cat-blurb" id="prodDesc">&nbsp;</p>
+    </header>
+
+    <section class="cust">
+      <aside class="cust__media" id="prodMedia"><!-- filled by customise.js --></aside>
+      <form class="cust__form" id="optForm" novalidate><!-- filled by customise.js --></form>
+    </section>
+
+  </div>
+</div>
+
+<!-- sticky order bar -->
+<div class="cust-bar">
+  <div class="cust-bar__inner wrap">
+    <div class="qty qty--lg">
+      <button type="button" id="qtyMinus" aria-label="One fewer">&minus;</button>
+      <span id="qtyValue">1</span>
+      <button type="button" id="qtyPlus" aria-label="One more">+</button>
+    </div>
+    <div class="cust-bar__total">
+      <span>Total</span>
+      <strong id="liveTotal">0.000 KD</strong>
+    </div>
+    <button type="button" class="btn btn--forest" id="addBtn">Add to basket</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/customise.js"></script>
+</body>
+</html>

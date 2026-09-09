@@ -233,7 +233,7 @@ const PRODUCTS = [
   /* --- Matcha drinks: made to order at the counter, like a cafe menu --- */
   {id:'d1', cat:'drinks', name:'Iced Matcha Latte', jp:'Aisu Rate', price:2.250, tag:'Bestseller',
    desc:'Ceremonial matcha whisked cold, poured over ice and fresh milk. The one we make most.'},
-  {id:'d2', cat:'drinks', name:'Hot Matcha Latte', jp:'Hotto Rate', price:2.250, tag:'Hot', art:'hotcup',
+  {id:'d2', cat:'drinks', name:'Hot Matcha Latte', jp:'Hotto Rate', price:2.250, tag:'Hot', art:'hotcup', skip:['ice'],
    desc:'Steamed milk over a thick whisked shot, in a warm cup. Oat milk on request.'},
   {id:'d3', cat:'drinks', name:'Strawberry Matcha', jp:'Ichigo', price:2.750, tag:'Girls’ favourite',
    desc:'Fresh strawberry at the bottom, milk and matcha layered on top. Stir before the first sip.'},
@@ -259,7 +259,134 @@ const PRODUCTS = [
    desc:'Holder, scoop rest and small tray in one blush glaze. The whole counter, sorted.'}
 ];
 
+/* ============================================================
+   OPTION GROUPS
+   What the customer picks on customise.html before the item goes
+   in the basket. Keyed by category, so every drink gets the drink
+   options and every tin gets the size options.
+
+   type 'single' = pick one (radio)   'multi' = pick any (checkbox)
+   type 'count'  = a 0..max stepper
+   A choice adds `price` KD, or multiplies the base price by `mult`.
+   ============================================================ */
+const OPTION_GROUPS = {
+
+  drinks: [
+    {id:'milk', label:'Milk', jp:'Miruku', type:'single', required:true,
+     note:'Choose one',
+     choices:[
+       {id:'whole',   name:'Whole milk',   price:0},
+       {id:'skimmed', name:'Skimmed milk', price:0},
+       {id:'oat',     name:'Oat milk',     price:0.250},
+       {id:'almond',  name:'Almond milk',  price:0.250},
+       {id:'coconut', name:'Coconut milk', price:0.250}
+     ]},
+
+    {id:'foam', label:'Cold foam', jp:'Fomu', type:'multi',
+     note:'Add as many as you like',
+     choices:[
+       {id:'vanilla-foam', name:'Vanilla sweet cream', price:0.500},
+       {id:'caramel-foam', name:'Salted caramel foam', price:0.500},
+       {id:'berry-foam',   name:'Strawberry foam',     price:0.500},
+       {id:'matcha-foam',  name:'Matcha cold foam',    price:0.600}
+     ]},
+
+    {id:'syrup', label:'Syrup', jp:'Shiroppu', type:'multi',
+     note:'Add as many as you like',
+     choices:[
+       {id:'vanilla',     name:'Vanilla',     price:0.250},
+       {id:'caramel',     name:'Caramel',     price:0.250},
+       {id:'hazelnut',    name:'Hazelnut',    price:0.250},
+       {id:'rose',        name:'Rose',        price:0.300},
+       {id:'brown-sugar', name:'Brown sugar', price:0.250}
+     ]},
+
+    {id:'shots', label:'Extra matcha shot', jp:'Shotto', type:'count',
+     note:'Up to three', max:3, price:0.750},
+
+    {id:'ice', label:'Ice', jp:'Kori', type:'single', required:true,
+     note:'Choose one', default:'regular',
+     choices:[
+       {id:'extra',   name:'Extra ice',   price:0},
+       {id:'regular', name:'Regular ice', price:0},
+       {id:'less',    name:'Less ice',    price:0},
+       {id:'none',    name:'No ice',      price:0}
+     ]}
+  ],
+
+  matcha: [
+    {id:'size', label:'How much', jp:'Ryo', type:'single', required:true,
+     note:'The listed price is for 30g', default:'30',
+     choices:[
+       {id:'30',  name:'30 g',  mult:1},
+       {id:'50',  name:'50 g',  mult:1.55},
+       {id:'100', name:'100 g', mult:2.85},
+       {id:'200', name:'200 g', mult:5.2}
+     ]}
+  ]
+};
+
 /* ---- helpers --------------------------------------------- */
+
+/* the groups this product actually shows - a hot drink skips the ice */
+function optionGroupsFor(product){
+  if(!product) return [];
+  const skip = product.skip || [];
+  return (OPTION_GROUPS[product.cat] || []).filter(g => !skip.includes(g.id));
+}
+
+/* does this product need a trip to customise.html first? */
+function needsOptions(product){
+  return optionGroupsFor(product).length > 0;
+}
+
+/* price of ONE unit with the chosen options applied */
+function configuredPrice(product, opts){
+  if(!product) return 0;
+  let price = product.price, mult = 1;
+
+  optionGroupsFor(product).forEach(group => {
+    const chosen = opts ? opts[group.id] : null;
+    if(chosen === undefined || chosen === null) return;
+
+    if(group.type === 'count'){
+      price += (group.price || 0) * Number(chosen);
+      return;
+    }
+    const ids = Array.isArray(chosen) ? chosen : [chosen];
+    ids.forEach(id => {
+      const choice = group.choices.find(c => c.id === id);
+      if(!choice) return;
+      if(choice.price) price += choice.price;
+      if(choice.mult)  mult  *= choice.mult;
+    });
+  });
+
+  /* keep it to fils, so totals never drift on a floating point tail */
+  return Math.round(price * mult * 1000) / 1000;
+}
+
+/* a short line for the basket: "Oat milk - Vanilla - Less ice" */
+function optionSummary(product, opts){
+  const bits = [];
+  optionGroupsFor(product).forEach(group => {
+    const chosen = opts ? opts[group.id] : null;
+    if(chosen === undefined || chosen === null) return;
+
+    if(group.type === 'count'){
+      const n = Number(chosen);
+      if(n > 0) bits.push(n + (n > 1 ? ' extra shots' : ' extra shot'));
+      return;
+    }
+    const ids = Array.isArray(chosen) ? chosen : [chosen];
+    ids.forEach(id => {
+      const choice = group.choices.find(c => c.id === id);
+      if(choice) bits.push(choice.name);
+    });
+  });
+  return bits.join(' · ');
+}
+
 function getCategory(id){
   return CATEGORIES.find(c => c.id === id) || null;
 }

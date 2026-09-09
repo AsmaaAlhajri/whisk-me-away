@@ -80,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="order__items">
             ${order.items.map(item => `
               <div class="order__line">
-                <span>${esc(item.name)} &times; ${item.qty}</span>
+                <span>${esc(item.name)} &times; ${item.qty}${
+                  item.options ? `<small class="order__opts">${esc(item.options)}</small>` : ''}</span>
                 <span>${KD(item.price * item.qty)} KD</span>
               </div>`).join('')}
           </div>

@@ -1391,7 +1391,137 @@ p{margin:0;}
   animation:cremaBreathe 2.6s ease-in-out infinite;
 }
 
-/* ---------- 22. RESPONSIVE ---------- */
+/* ============================================================
+   22. CUSTOMISE PAGE - milk, foam, syrup, shots, ice, size
+   ============================================================ */
+.cust{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:28px;
+  align-items:start;
+  padding-bottom:150px;        /* clear of the sticky order bar */
+}
+.cust__media{position:sticky;top:calc(var(--top-bar-h) + 20px);}
+.cust__art{
+  aspect-ratio:1/1;
+  border-radius:var(--radius-l);
+  display:grid;place-items:center;
+  overflow:hidden;
+  box-shadow:var(--shadow-soft);
+}
+.cust__art .art{width:56%;height:56%;}
+.cust__base{
+  text-align:center;
+  margin-top:12px;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.cust__base strong{font-family:var(--font-display);font-size:17px;letter-spacing:0;color:var(--forest);}
+
+.cust__form{display:grid;gap:16px;}
+.opt{
+  border:1px solid var(--line);
+  border-radius:var(--radius-l);
+  background:var(--card);
+  padding:20px 22px 22px;
+  margin:0;
+  box-shadow:var(--shadow-soft);
+}
+.opt__head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:0;margin-bottom:14px;
+}
+.opt__label{
+  font-family:var(--font-display);
+  font-size:22px;
+  color:var(--forest);
+}
+.opt__note{
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.opt__choices{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:9px;
+}
+
+/* one choice: the real input is hidden, the label is the control */
+.choice{position:relative;display:block;cursor:pointer;}
+.choice input{
+  position:absolute;
+  opacity:0;
+  width:0;height:0;
+}
+.choice__body{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:13px 16px;
+  border-radius:var(--radius-m);
+  border:1px solid var(--line);
+  background:var(--wash);
+  transition:border-color .25s var(--ease),background .25s var(--ease),
+             transform .25s var(--ease);
+}
+.choice:hover .choice__body{transform:translateY(-2px);}
+.choice__name{font-size:14px;color:var(--ink);}
+.choice__price{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;}
+.choice input:checked + .choice__body{
+  background:var(--mist);
+  border-color:var(--blush);
+  box-shadow:inset 0 0 0 1px var(--blush);
+}
+.choice input:checked + .choice__body .choice__name{color:var(--forest);font-weight:500;}
+.choice input:focus-visible + .choice__body{box-shadow:var(--ring);}
+
+.opt__count{display:flex;align-items:center;gap:16px;}
+.opt__price{font-size:12px;color:var(--ink-faint);}
+
+/* a chunkier version of the basket stepper */
+.qty--lg{gap:12px;}
+.qty--lg button{width:34px;height:34px;font-size:18px;}
+.qty--lg span{font-size:16px;min-width:22px;}
+
+/* ---- sticky order bar ---- */
+.cust-bar{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  z-index:55;
+  background:rgba(251,246,236,.92);
+  backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+  border-top:1px solid var(--line);
+}
+.cust-bar__inner{
+  display:flex;align-items:center;gap:18px;
+  padding:14px 0;
+}
+.cust-bar__total{margin-left:auto;text-align:right;}
+.cust-bar__total span{
+  display:block;
+  font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.cust-bar__total strong{
+  font-family:var(--font-display);
+  font-size:26px;font-weight:600;
+  color:var(--forest);
+}
+
+/* the chosen options, echoed in the basket and on past orders */
+.cart-item__opts{
+  font-size:11.5px;
+  line-height:1.45;
+  color:var(--pine);
+  margin-top:3px;
+}
+.order__opts{
+  display:block;
+  font-size:11px;
+  color:var(--ink-faint);
+  margin-top:2px;
+}
+
+/* ---------- 23. RESPONSIVE ---------- */
 @media (max-width:900px){
   .acct{grid-template-columns:1fr;}
   .story-split{grid-template-columns:1fr;}
@@ -1419,9 +1549,14 @@ p{margin:0;}
   .journey{grid-template-columns:1fr 1fr;}
   .step-grid{grid-template-columns:1fr;}
   .pin__label{font-size:15px;}
+  .cust{grid-template-columns:1fr;}
+  .cust__media{position:static;max-width:220px;margin-inline:auto;}
+  .opt__choices{grid-template-columns:1fr;}
+  .cust-bar__inner{gap:12px;padding:12px 0;}
+  .cust-bar__total strong{font-size:21px;}
 }
 
-/* ---------- 23. MOTION PREFERENCE ---------- */
+/* ---------- 24. MOTION PREFERENCE ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.01ms !important;

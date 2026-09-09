@@ -366,14 +366,27 @@ function wireChrome(){
    ============================================================ */
 const SHIPPING = 1.500;
 
-function addToCart(productId){
+/* A basket line is identified by the product AND its options, so an
+   oat-milk latte and an almond-milk latte sit on separate lines. */
+function lineKey(productId, opts){
+  return productId + '|' + JSON.stringify(opts || null);
+}
+function keyOf(line){
+  return line.key || lineKey(line.id, line.opts);
+}
+
+function addToCart(productId, opts, qty){
   const product = getProduct(productId);
   if(!product) return;
 
+  qty = Math.max(1, Number(qty) || 1);
+  opts = opts || null;
+  const key = lineKey(productId, opts);
+
   const items = Store.cart();
-  const line = items.find(i => i.id === productId);
-  if(line){ line.qty += 1; }
-  else{ items.push({id: productId, qty: 1}); }
+  const line = items.find(i => keyOf(i) === key);
+  if(line){ line.qty += qty; }
+  else{ items.push({key, id: productId, qty, opts}); }
 
   Store.saveCart(items);
   renderCart();
@@ -381,27 +394,30 @@ function addToCart(productId){
   showToast(`${product.name} added to your basket`);
 }
 
-function setQty(productId, delta){
+function setQty(key, delta){
   const items = Store.cart();
-  const line = items.find(i => i.id === productId);
+  const line = items.find(i => keyOf(i) === key);
   if(!line) return;
   line.qty += delta;
-  const next = line.qty <= 0 ? items.filter(i => i.id !== productId) : items;
+  const next = line.qty <= 0 ? items.filter(i => keyOf(i) !== key) : items;
   Store.saveCart(next);
   renderCart();
 }
 
-function removeFromCart(productId){
-  Store.saveCart(Store.cart().filter(i => i.id !== productId));
+function removeFromCart(key){
+  Store.saveCart(Store.cart().filter(i => keyOf(i) !== key));
   renderCart();
+}
+
+/* what one unit of this line costs, options included */
+function linePrice(line){
+  const p = getProduct(line.id);
+  return p ? configuredPrice(p, line.opts) : 0;
 }
 
 function cartTotals(){
   const items = Store.cart();
-  const subtotal = items.reduce((sum, i) => {
-    const p = getProduct(i.id);
-    return sum + (p ? p.price * i.qty : 0);
-  }, 0);
+  const subtotal = items.reduce((sum, i) => sum + linePrice(i) * i.qty, 0);
   const count = items.reduce((n, i) => n + i.qty, 0);
   return {subtotal, count, total: subtotal + (subtotal > 0 ? SHIPPING : 0)};
 }
@@ -424,19 +440,22 @@ function renderCart(){
     body.innerHTML = items.map(i => {
       const p = getProduct(i.id);
       if(!p) return '';
+      const key = keyOf(i);
+      const summary = optionSummary(p, i.opts);
       return `
         <div class="cart-item">
           <div class="cart-item__thumb">${ART[p.art] || ART[p.cat]}</div>
           <div>
             <div class="cart-item__name">${esc(p.name)}</div>
-            <div class="cart-item__price">${KD(p.price)} KD each</div>
+            ${summary ? `<div class="cart-item__opts">${esc(summary)}</div>` : ''}
+            <div class="cart-item__price">${KD(linePrice(i))} KD each</div>
             <div class="qty">
-              <button data-minus="${p.id}" aria-label="Decrease quantity">&minus;</button>
+              <button data-minus="${esc(key)}" aria-label="Decrease quantity">&minus;</button>
               <span>${i.qty}</span>
-              <button data-plus="${p.id}" aria-label="Increase quantity">+</button>
+              <button data-plus="${esc(key)}" aria-label="Increase quantity">+</button>
             </div>
           </div>
-          <button class="cart-item__remove" data-remove="${p.id}">Remove</button>
+          <button class="cart-item__remove" data-remove="${esc(key)}">Remove</button>
         </div>`;
     }).join('');
 
@@ -480,7 +499,12 @@ function checkout(){
     total: total,
     items: items.map(i => {
       const p = getProduct(i.id);
-      return {name: p.name, qty: i.qty, price: p.price};
+      return {
+        name: p.name,
+        qty: i.qty,
+        price: linePrice(i),
+        options: optionSummary(p, i.opts) || null
+      };
     })
   };
 
