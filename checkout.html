@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisk Me Away &middot; Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="checkout">
+
+<div class="page">
+  <div class="wrap">
+
+    <header class="cat-hero">
+      <a class="crumb" href="categories.html" data-nav>
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/>
+        </svg>
+        Keep shopping
+      </a>
+      <p class="section__jp">Kaikei</p>
+      <h1 class="section__title">Nearly<br><em>yours</em></h1>
+      <p class="section__text cat-blurb">
+        Tell us where it is going. We deliver across every governorate in Kuwait.
+      </p>
+    </header>
+
+    <section class="checkout">
+
+      <form class="checkout__form" id="checkoutForm" novalidate>
+
+        <!-- ---------- delivery address ---------- -->
+        <fieldset class="opt">
+          <legend class="opt__head">
+            <span class="opt__label">Delivery address</span>
+            <span class="opt__note">Avenue is optional</span>
+          </legend>
+
+          <div class="field-grid">
+            <div class="field field--wide">
+              <label for="coArea">Area</label>
+              <select id="coArea" class="field__select"></select>
+            </div>
+            <div class="field">
+              <label for="coBlock">Block</label>
+              <input type="text" id="coBlock" placeholder="e.g. 4" maxlength="12" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="coStreet">Street</label>
+              <input type="text" id="coStreet" placeholder="e.g. 12 or Salem Al-Mubarak" maxlength="60">
+            </div>
+            <div class="field">
+              <label for="coAvenue">Avenue <span class="field__hint">optional</span></label>
+              <input type="text" id="coAvenue" placeholder="e.g. 3" maxlength="40">
+            </div>
+            <div class="field">
+              <label for="coHouse">House / building</label>
+              <input type="text" id="coHouse" placeholder="e.g. 21, Flat 3" maxlength="40">
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- ---------- gift ---------- -->
+        <fieldset class="opt">
+          <legend class="opt__head">
+            <span class="opt__label">Is this a gift?</span>
+            <span class="opt__note">We leave the price off gift orders</span>
+          </legend>
+
+          <label class="choice choice--wide">
+            <input type="checkbox" id="isGift">
+            <span class="choice__body">
+              <span class="choice__name">Yes, send it as a gift</span>
+            </span>
+          </label>
+
+          <div class="gift" id="giftFields" hidden>
+            <div class="field-grid">
+              <div class="field field--wide">
+                <label for="giftName">Recipient's full name</label>
+                <input type="text" id="giftName" placeholder="Who is it for?" maxlength="80">
+              </div>
+              <div class="field field--wide">
+                <label for="giftPhone">Recipient's mobile <span class="field__hint">7 or 8 digits</span></label>
+                <input type="tel" id="giftPhone" placeholder="99551122"
+                       inputmode="numeric" maxlength="8" minlength="7" pattern="[0-9]{7,8}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="giftMessage">
+                Message for them
+                <span class="field__hint"><span id="giftCount">0</span>/250</span>
+              </label>
+              <textarea id="giftMessage" rows="4" maxlength="250"
+                        placeholder="A few words to send with it..."></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <p class="form-msg" id="msg" role="status" aria-live="polite"></p>
+      </form>
+
+      <!-- ---------- order summary ---------- -->
+      <aside class="checkout__summary">
+        <h3 class="summary__title">Your order</h3>
+        <div id="summaryLines"></div>
+        <div class="cart__row"><span>Subtotal</span><span id="sumSub">0.000 KD</span></div>
+        <div class="cart__row"><span>Delivery in Kuwait</span><span id="sumShip">0.000 KD</span></div>
+        <div class="cart__total"><span>Total</span><span id="sumTotal">0.000 KD</span></div>
+        <button type="button" class="btn btn--forest btn--full" id="placeBtn">Place order</button>
+      </aside>
+
+    </section>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot__brand">Whisk Me Away</div>
+  <p>Kuwait &middot; Delivery across all governorates &middot; Made with matcha</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/checkout.js"></script>
+</body>
+</html>

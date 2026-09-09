@@ -23,6 +23,32 @@ const STATUS_LABEL = {
   delivered: 'Delivered'
 };
 
+/* "Block 4, Street 12, Avenue 3, House 21 - Salmiya, Hawalli" */
+function addressLine(order){
+  const a = order.address;
+  if(!a || !a.city) return '';
+  const parts = [
+    a.block  ? 'Block ' + a.block   : null,
+    a.street ? 'Street ' + a.street : null,
+    a.avenue ? 'Avenue ' + a.avenue : null,
+    a.house  ? 'House ' + a.house   : null
+  ].filter(Boolean);
+  const where = [a.city, a.governorate].filter(Boolean).join(', ');
+  return `<p class="order__addr">${esc(parts.join(', '))}${
+    parts.length && where ? ' &mdash; ' : ''}${esc(where)}</p>`;
+}
+
+/* who the gift is for, and the note they get with it */
+function giftBlock(order){
+  const g = order.gift;
+  if(!g) return '';
+  return `
+    <div class="order__gift">
+      <strong>Gift for ${esc(g.name)}</strong>${g.phone ? ' &middot; ' + esc(g.phone) : ''}
+      ${g.message ? `<em>&ldquo;${esc(g.message)}&rdquo;</em>` : ''}
+    </div>`;
+}
+
 function formatDate(iso){
   return new Date(iso).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric'
@@ -42,7 +68,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rows = [
     ['Email', user.email],
     ['Phone', user.phone || 'Not added yet'],
-    ['Area',  user.area  || 'Not added yet'],
+    ['Area',  user.city  || 'Not added yet'],
+    ['Governorate', user.governorate || 'Not added yet'],
     ['Member since', formatDate(user.joined)]
   ];
   document.getElementById('infoList').innerHTML = rows.map(([label, value]) => `
@@ -77,8 +104,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="order__id">${esc(order.id)}</div>
               <div class="order__date">${formatDate(order.date)}</div>
             </div>
-            <span class="status status--${status}">${STATUS_LABEL[status]}</span>
+            <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              ${order.gift ? '<span class="gift-tag">Gift</span>' : ''}
+              <span class="status status--${status}">${STATUS_LABEL[status]}</span>
+            </span>
           </div>
+          ${addressLine(order)}
+          ${giftBlock(order)}
           <div class="order__items">
             ${order.items.map(item => `
               <div class="order__line">

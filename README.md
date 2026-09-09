@@ -25,6 +25,8 @@ Then open <http://localhost:5173>.
 | `category.html` | One page serving all seven categories: `category.html?cat=bowls` |
 | `story.html` | Our Story: what matcha is, an interactive map of Japan, the journey, our promise. |
 | `steps.html` | How to whisk: six steps, each with an animation that plays on hover or tap. |
+| `customise.html` | Options for drinks and matcha powder: `customise.html?id=d1` |
+| `checkout.html` | Delivery address, the gift option, and placing the order. |
 | `account.html` | Her details and her orders with their status. |
 
 The seven categories are whisks, matcha powder, bowls, spoons, glasses,
@@ -46,6 +48,7 @@ js/story.js         the five growing regions and the map pins
 js/steps.js         tap-to-play for the step animations (hover is pure CSS)
 js/customise.js     the milk / foam / syrup / size options page
 js/supabase.js      database connection (publishable key, safe to commit)
+js/checkout.js      address + gift, and writing the order
 js/account.js       details + orders
 media/matcha.mp4    the looping video behind the home hero
 ```
@@ -139,6 +142,26 @@ category. A single product can override its category icon by naming another entr
 in `ART`, e.g. the Hot Matcha Latte carries `art:'hotcup'` so it shows a mug
 instead of the iced glass. To use real photos instead, add an `img` field to each product and
 swap the `${ART[cat.id]}` line in `js/category.js` for an `<img>`.
+
+## Addresses, phones and gifts
+
+**Areas** come from `GOVERNORATES` in `js/data.js` - six governorates with
+their cities. The dropdown is built from it with one `<optgroup>` per
+governorate, and the value is stored as `hawalli|Salmiya`. Move a city between
+governorates there and every form follows. Worth checking the lists match the
+areas you actually deliver to.
+
+**Phone numbers** are digits only, 7 or 8 of them (8 for Kuwaiti mobiles, 7 for
+some landlines). `cleanPhone()` strips a `+965` prefix and anything non-numeric;
+`phoneIsValid()` deliberately checks the untruncated value, so a pasted 9-digit
+number is refused rather than quietly trimmed into a different number. The
+database enforces the same rule with a CHECK constraint.
+
+**Checkout** collects governorate, city, block, street, avenue (optional) and
+house. Tick the gift box and the recipient's name and mobile become required,
+plus an optional note capped at 250 characters. All of that is enforced twice:
+in `js/checkout.js` for a helpful message, and by CHECK constraints on the
+`orders` table so a bad row cannot be written even by hand.
 
 ## Palette
 

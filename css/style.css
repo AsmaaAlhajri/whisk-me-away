@@ -1521,7 +1521,122 @@ p{margin:0;}
   margin-top:2px;
 }
 
-/* ---------- 23. RESPONSIVE ---------- */
+/* ============================================================
+   23. CHECKOUT - address, gift, summary
+   ============================================================ */
+.checkout{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:26px;
+  align-items:start;
+  padding-bottom:90px;
+}
+.checkout__form{display:grid;gap:16px;}
+
+/* select and textarea, matched to .field input */
+.field__select,
+.field textarea{
+  width:100%;
+  padding:13px 44px 13px 15px;
+  border-radius:var(--radius-m);
+  background:#F7F1E5;
+  border:1px solid rgba(46,70,35,.20);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:14.5px;
+  transition:border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+}
+.field textarea{
+  padding-right:15px;
+  resize:vertical;
+  min-height:96px;
+  line-height:1.6;
+}
+.field__select{
+  appearance:none;
+  -webkit-appearance:none;
+  cursor:pointer;
+}
+.field__select:focus,
+.field textarea:focus{
+  outline:none;
+  border-color:var(--blush);
+  background:var(--card);
+  box-shadow:var(--ring);
+}
+.field textarea::placeholder{color:rgba(46,70,35,.45);}
+/* a small note sitting inside a label, e.g. "7 or 8 digits" */
+.field__hint{
+  float:right;
+  letter-spacing:.06em;
+  text-transform:none;
+  color:var(--ink-faint);
+  font-size:10px;
+}
+
+.field-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 14px;
+}
+.field--wide{grid-column:1 / -1;}
+
+/* the gift checkbox spans the panel */
+.choice--wide{display:block;}
+.gift{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px dashed rgba(46,70,35,.22);
+}
+
+/* ---- order summary ---- */
+.checkout__summary{
+  position:sticky;
+  top:calc(var(--top-bar-h) + 20px);
+  border-radius:var(--radius-l);
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-soft);
+  padding:24px 22px;
+}
+.summary__title{font-size:24px;color:var(--forest);margin-bottom:14px;}
+.summary__line{
+  display:flex;justify-content:space-between;gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line-soft);
+}
+.summary__name{display:block;font-size:13.5px;color:var(--ink);line-height:1.35;}
+.summary__opts{display:block;font-size:11.5px;color:var(--pine);margin-top:3px;line-height:1.45;}
+.summary__price{font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+.checkout__summary .cart__row{margin-top:12px;}
+.checkout__summary .cart__total{margin-top:6px;}
+
+/* ---- how a past order shows its address and gift ---- */
+.order__addr{
+  font-size:12px;
+  line-height:1.6;
+  color:var(--ink-soft);
+  margin-bottom:10px;
+}
+.order__gift{
+  margin-bottom:10px;
+  padding:12px 14px;
+  border-radius:var(--radius-m);
+  background:var(--mist);
+  border:1px solid rgba(243,186,186,.7);
+  font-size:12.5px;
+  line-height:1.6;
+  color:var(--forest);
+}
+.order__gift strong{font-weight:600;}
+.order__gift em{font-style:italic;display:block;margin-top:5px;color:var(--pine);}
+.gift-tag{
+  font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+  padding:5px 10px;border-radius:var(--radius-pill);
+  background:var(--blush);color:var(--forest);
+}
+
+/* ---------- 24. RESPONSIVE ---------- */
 @media (max-width:900px){
   .acct{grid-template-columns:1fr;}
   .story-split{grid-template-columns:1fr;}
@@ -1550,13 +1665,16 @@ p{margin:0;}
   .step-grid{grid-template-columns:1fr;}
   .pin__label{font-size:15px;}
   .cust{grid-template-columns:1fr;}
+  .checkout{grid-template-columns:1fr;}
+  .checkout__summary{position:static;}
+  .field-grid{grid-template-columns:1fr;}
   .cust__media{position:static;max-width:220px;margin-inline:auto;}
   .opt__choices{grid-template-columns:1fr;}
   .cust-bar__inner{gap:12px;padding:12px 0;}
   .cust-bar__total strong{font-size:21px;}
 }
 
-/* ---------- 24. MOTION PREFERENCE ---------- */
+/* ---------- 25. MOTION PREFERENCE ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.01ms !important;

@@ -7,15 +7,31 @@
 /* ---- Hand-drawn SVG art, one per category ---------------- */
 const ART = {
 
+  /* chasen: bamboo handle at the base, ~80 tines flaring UP and OUT,
+     tips curling over into loops so the crown is the widest part */
   whisks: `<svg class="art" viewBox="0 0 100 100" fill="none" stroke="#FFF8F5" stroke-width="2.2"
       stroke-linecap="round" stroke-linejoin="round">
-      <path d="M50 18v34" stroke="#F9DDD8" stroke-width="6"/>
-      <path d="M40 20v-4M50 18v-6M60 20v-4" stroke="#F3BABA"/>
-      <path d="M34 52c0 12 5 22 16 22s16-10 16-22" stroke="#F3BABA"/>
-      <path d="M38 52c0 13 3 24 12 24M62 52c0 13-3 24-12 24" opacity=".85"/>
-      <path d="M42 52c0 14 1 25 8 25M58 52c0 14-1 25-8 25" opacity=".65"/>
-      <path d="M34 52h32" stroke="#F8D0C8" stroke-width="3"/>
-      <path d="M30 84h40" stroke="#A7B59E" stroke-width="3"/>
+      <!-- the looped tine tips, scalloped across the top -->
+      <path d="M20 27 q3-8 6 0 q3-8 6 0 q3-8 6 0 q3-8 6 0 q3-8 6 0
+               q3-8 6 0 q3-8 6 0 q3-8 6 0 q3-8 6 0 q3-8 6 0"
+            stroke="#F9DDD8" stroke-width="2"/>
+      <!-- outer tines, fanning out from the binding to the crown -->
+      <path d="M46 60 C40 48 30 35 21 27" stroke="#F9DDD8"/>
+      <path d="M48 60 C44 46 36 32 29 25" stroke="#F9DDD8"/>
+      <path d="M49 60 C47 45 43 31 38 24" stroke="#F9DDD8"/>
+      <path d="M50 60 V23"                stroke="#F9DDD8"/>
+      <path d="M51 60 C53 45 57 31 62 24" stroke="#F9DDD8"/>
+      <path d="M52 60 C56 46 64 32 71 25" stroke="#F9DDD8"/>
+      <path d="M54 60 C60 48 70 35 79 27" stroke="#F9DDD8"/>
+      <!-- a few shorter inner tines for density -->
+      <path d="M49 60 C47 49 45 40 44 32" opacity=".55"/>
+      <path d="M51 60 C53 49 55 40 56 32" opacity=".55"/>
+      <!-- binding thread -->
+      <path d="M42 61h16" stroke="#F3BABA" stroke-width="4"/>
+      <!-- bamboo handle -->
+      <rect x="43" y="62" width="14" height="30" rx="3"
+            fill="rgba(249,221,216,.30)" stroke="#F9DDD8"/>
+      <path d="M43 79h14" stroke="#F9DDD8" stroke-width="1.5" opacity=".65"/>
     </svg>`,
 
   /* a small matcha tin: the can the powder is actually kept in */
@@ -325,6 +341,94 @@ const OPTION_GROUPS = {
      ]}
   ]
 };
+
+/* ============================================================
+   KUWAIT DELIVERY AREAS
+   Cities grouped under their governorate. The address dropdown is
+   built straight from this, using one <optgroup> per governorate.
+   Add or move an area here and the form follows.
+   ============================================================ */
+const GOVERNORATES = [
+  {id:'capital', name:'Al Asimah (Capital)', cities:[
+    'Kuwait City','Sharq','Mirqab','Dasman','Qibla','Salhiya','Bneid Al-Qar',
+    'Dasma','Daiya','Mansouriya','Shamiya','Abdullah Al-Salem','Nuzha','Faiha',
+    'Kaifan','Khaldiya','Adailiya','Rawda','Yarmouk','Qadsiya','Qurtuba','Surra',
+    'Granada','Sulaibikhat','Doha','Jaber Al-Ahmad','Shuwaikh','Nahdha','Qairawan'
+  ]},
+  {id:'hawalli', name:'Hawalli', cities:[
+    'Hawalli','Salmiya','Rumaithiya','Bayan','Mishref','Salwa','Jabriya',
+    'Maidan Hawalli','Nugra','Shaab','Zahra','Hitteen','Salam','Siddeeq','Bidaa',
+    'Shuhada','Mubarak Al-Abdullah'
+  ]},
+  {id:'farwaniya', name:'Al Farwaniya', cities:[
+    'Farwaniya','Jleeb Al-Shuyoukh','Khaitan','Abraq Khaitan','Abdullah Al-Mubarak',
+    'Ardiya','Rabiya','Andalous','Firdous','Omariya','Rehab','Ishbiliya','Dhajeej',
+    'Sabah Al-Nasser','Rai'
+  ]},
+  {id:'mubarak', name:'Mubarak Al-Kabeer', cities:[
+    'Mubarak Al-Kabeer','Sabah Al-Salem','Messila','Adan','Qurain','Qusour',
+    'Funaitees','Abu Fatira','Abu Hasaniya','Wista','Sabhan'
+  ]},
+  {id:'ahmadi', name:'Al Ahmadi', cities:[
+    'Ahmadi','Fahaheel','Mangaf','Abu Halifa','Fintas','Mahboula','Riqqa','Hadiya',
+    'Sabahiya','Egaila','Jaber Al-Ali','Ali Sabah Al-Salem','Fahad Al-Ahmad',
+    'Sabah Al-Ahmad','Wafra','Khiran','Zour','Shuaiba'
+  ]},
+  {id:'jahra', name:'Al Jahra', cities:[
+    'Jahra','Saad Al-Abdullah','Naeem','Qasr','Waha','Oyoun','Nasseem','Taima',
+    'Sulaibiya','Amghara','Abdali','Kabd','Salmi'
+  ]}
+];
+
+/* "hawalli|Salmiya" is what the dropdown stores; these unpack it */
+function areaValue(govId, city){ return govId + '|' + city; }
+
+function parseArea(value){
+  if(!value || !value.includes('|')) return null;
+  const [govId, city] = value.split('|');
+  const gov = GOVERNORATES.find(g => g.id === govId);
+  if(!gov || !gov.cities.includes(city)) return null;
+  return {govId, governorate: gov.name, city};
+}
+
+/* the <optgroup> markup for an address dropdown */
+function areaOptions(selectedValue){
+  return GOVERNORATES.map(g => `
+    <optgroup label="${g.name}">
+      ${g.cities.map(c => {
+        const v = areaValue(g.id, c);
+        return `<option value="${v}"${v === selectedValue ? ' selected' : ''}>${c}</option>`;
+      }).join('')}
+    </optgroup>`).join('');
+}
+
+/* ============================================================
+   PHONE NUMBERS
+   Kuwait numbers are 8 digits for mobiles and 7 for some
+   landlines, so we accept 7 or 8 digits and nothing else.
+   ============================================================ */
+const PHONE_MIN = 7, PHONE_MAX = 8;
+
+/* digits only, with a leading +965 country code dropped.
+   Deliberately does NOT truncate - validation has to be able to
+   see that 9 digits were entered and reject them. */
+function phoneDigits(raw){
+  let d = String(raw || '').replace(/\D/g, '');
+  if(d.length > PHONE_MAX && d.startsWith('965')) d = d.slice(3);
+  return d;
+}
+
+/* what the input box should hold as you type */
+function cleanPhone(raw){
+  return phoneDigits(raw).slice(0, PHONE_MAX);
+}
+
+/* validate the raw entry, so a pasted 9-digit number is refused
+   rather than quietly trimmed down to a different number */
+function phoneIsValid(raw){
+  const d = phoneDigits(raw);
+  return d.length >= PHONE_MIN && d.length <= PHONE_MAX;
+}
 
 /* ---- helpers --------------------------------------------- */
 

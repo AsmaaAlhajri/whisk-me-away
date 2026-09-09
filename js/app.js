@@ -34,7 +34,7 @@ const Store = {
     if(!user){ this._user = null; this._cart = []; return null; }
 
     const {data:profile} = await sb.from('profiles')
-      .select('name,phone,area,created_at')
+      .select('name,phone,governorate,city,created_at')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -44,7 +44,8 @@ const Store = {
       email: user.email,
       name:  (profile && profile.name)  || meta.name  || '',
       phone: (profile && profile.phone) || meta.phone || '',
-      area:  (profile && profile.area)  || meta.area  || '',
+      governorate: (profile && profile.governorate) || meta.governorate || '',
+      city:        (profile && profile.city)        || meta.city        || '',
       joined:(profile && profile.created_at) || user.created_at
     };
 
@@ -111,7 +112,10 @@ const Store = {
   async orders(){
     if(!this._user) return [];
     const {data, error} = await sb.from('orders')
-      .select('code,status,total,placed_at,order_items(name,qty,price,options)')
+      .select(`code,status,total,placed_at,
+               governorate,city,block,street,avenue,house,
+               is_gift,gift_name,gift_phone,gift_message,
+               order_items(name,qty,price,options)`)
       .eq('user_id', this._user.id)
       .order('placed_at', {ascending:false});
 
@@ -121,6 +125,9 @@ const Store = {
       date:   o.placed_at,
       status: o.status,
       total:  Number(o.total),
+      address:{governorate:o.governorate, city:o.city, block:o.block,
+               street:o.street, avenue:o.avenue, house:o.house},
+      gift:   o.is_gift ? {name:o.gift_name, phone:o.gift_phone, message:o.gift_message} : null,
       items:  (o.order_items || []).map(i => ({
         name: i.name, qty: i.qty, price: Number(i.price), options: i.options
       }))
@@ -266,7 +273,11 @@ const ICONS = {
   grid: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/>
         <rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>`,
   leafSolid: `<svg viewBox="0 0 24 24"><path d="M20 4C10 4 4 9 4 16c0 2 1 4 1 4s7 0 11-4c3-3 4-8 4-12z"/><path d="M5 20c4-6 8-9 13-12"/></svg>`,
-  whisk: `<svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M7 11c0 5 2 9 5 9s5-4 5-9"/><path d="M7 11h10"/></svg>`,
+  whisk: `<svg viewBox="0 0 24 24">
+        <path d="M5 7.5 q1.5-3 3 0 q1.5-3 3 0 q1.5-3 3 0 q1.5-3 3 0 q1.5-3 3 0"/>
+        <path d="M11 14.5 C9.5 12 7 9.5 5.5 7.5"/><path d="M12 14.5V7"/>
+        <path d="M13 14.5 C14.5 12 17 9.5 18.5 7.5"/>
+        <path d="M10 14.5h4"/><path d="M10.5 15v6h3v-6"/></svg>`,
   user: `<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>`,
   out:  `<svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg>`,
   close:`<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
@@ -362,7 +373,7 @@ function buildChrome(activePage){
       <div class="cart__row"><span>Subtotal</span><span id="cartSub">0.000 KD</span></div>
       <div class="cart__row"><span>Delivery in Kuwait</span><span id="cartShip">1.500 KD</span></div>
       <div class="cart__total"><span>Total</span><span id="cartTotal">0.000 KD</span></div>
-      <button class="btn btn--forest btn--full" id="checkoutBtn">Place order</button>
+      <button class="btn btn--forest btn--full" id="checkoutBtn">Continue to checkout</button>
     </div>
   `;
 
@@ -423,7 +434,10 @@ function wireChrome(){
     });
   });
 
-  $('#checkoutBtn').addEventListener('click', checkout);
+  $('#checkoutBtn').addEventListener('click', () => {
+    if(Store.cart().length === 0) return;
+    goTo('checkout.html');
+  });
 }
 
 /* ============================================================
@@ -549,54 +563,8 @@ function bouncebadge(){
   badge.classList.add('badge-pop');
 }
 
-/* turn the basket into an order */
-async function checkout(){
-  const items = Store.cart();
-  const user  = Store.currentUser();
-  if(items.length === 0 || !user) return;
-
-  const {total} = cartTotals();
-  const btn = $('#checkoutBtn');
-  btn.disabled = true;
-
-  /* let any in-flight basket write finish before we read it back */
-  await Store._pushing;
-
-  const {data: order, error} = await sb.from('orders')
-    .insert({user_id: user.id, total})
-    .select('id,code')
-    .single();
-
-  if(error || !order){
-    btn.disabled = false;
-    showToast('Could not place the order. Please try again.');
-    return;
-  }
-
-  const lines = items.map(i => {
-    const p = getProduct(i.id);
-    return {
-      order_id:   order.id,
-      product_id: i.id,
-      name:       p.name,
-      qty:        i.qty,
-      price:      linePrice(i),
-      options:    optionSummary(p, i.opts) || null
-    };
-  });
-  await sb.from('order_items').insert(lines);
-
-  Store.saveCart([]);
-  await Store._pushing;
-  renderCart();
-  btn.disabled = false;
-
-  $('#cartOverlay').classList.remove('is-open');
-  $('#cartPanel').classList.remove('is-open');
-  showToast(`Order ${order.code} placed. We are preparing it now.`);
-
-  setTimeout(() => goTo('account.html'), 1600);
-}
+/* Placing the order lives in js/checkout.js, because it needs the
+   delivery address and gift details collected on checkout.html. */
 
 /* ============================================================
    8. TOAST

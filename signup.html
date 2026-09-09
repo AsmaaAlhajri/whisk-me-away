@@ -50,8 +50,9 @@
       </div>
 
       <div class="field">
-        <label for="phone">Phone</label>
-        <input type="tel" id="phone" placeholder="+965 0000 0000" autocomplete="tel">
+        <label for="phone">Phone <span class="field__hint">7 or 8 digits</span></label>
+        <input type="tel" id="phone" placeholder="99551122" autocomplete="tel"
+               inputmode="numeric" maxlength="8" minlength="7" pattern="[0-9]{7,8}">
         <svg class="field__icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <rect x="6" y="3" width="12" height="18" rx="3"/><path d="M11 18h2"/>
         </svg>
@@ -59,9 +60,10 @@
 
       <div class="field">
         <label for="area">Area in Kuwait</label>
-        <input type="text" id="area" placeholder="Salmiya, Jabriya, Kuwait City..." autocomplete="address-level2">
+        <!-- options are grouped by governorate, filled in by js/auth.js -->
+        <select id="area" class="field__select" autocomplete="address-level2"></select>
         <svg class="field__icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>
+          <path d="M6 9l6 6 6-6"/>
         </svg>
       </div>
 
