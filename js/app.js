@@ -34,7 +34,7 @@ const Store = {
     if(!user){ this._user = null; this._cart = []; return null; }
 
     const {data:profile} = await sb.from('profiles')
-      .select('name,phone,governorate,city,created_at')
+      .select('name,phone,area,created_at')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -44,8 +44,7 @@ const Store = {
       email: user.email,
       name:  (profile && profile.name)  || meta.name  || '',
       phone: (profile && profile.phone) || meta.phone || '',
-      governorate: (profile && profile.governorate) || meta.governorate || '',
-      city:        (profile && profile.city)        || meta.city        || '',
+      area:  (profile && profile.area)  || meta.area  || '',
       joined:(profile && profile.created_at) || user.created_at
     };
 
@@ -108,12 +107,23 @@ const Store = {
     return this._pushing;
   },
 
+  /* --- editing the account details --- */
+  async saveProfile({name, phone, area}){
+    if(!this._user) return {error:'not signed in'};
+    const {error} = await sb.from('profiles')
+      .update({name, phone, area})
+      .eq('id', this._user.id);
+    if(error) return {error};
+    Object.assign(this._user, {name, phone, area});
+    return {};
+  },
+
   /* --- past orders, newest first --- */
   async orders(){
     if(!this._user) return [];
     const {data, error} = await sb.from('orders')
       .select(`code,status,total,placed_at,
-               governorate,city,block,street,avenue,house,
+               area,block,street,avenue,house,
                is_gift,gift_name,gift_phone,gift_message,
                order_items(name,qty,price,options)`)
       .eq('user_id', this._user.id)
@@ -125,8 +135,8 @@ const Store = {
       date:   o.placed_at,
       status: o.status,
       total:  Number(o.total),
-      address:{governorate:o.governorate, city:o.city, block:o.block,
-               street:o.street, avenue:o.avenue, house:o.house},
+      address:{area:o.area, block:o.block, street:o.street,
+               avenue:o.avenue, house:o.house},
       gift:   o.is_gift ? {name:o.gift_name, phone:o.gift_phone, message:o.gift_message} : null,
       items:  (o.order_items || []).map(i => ({
         name: i.name, qty: i.qty, price: Number(i.price), options: i.options

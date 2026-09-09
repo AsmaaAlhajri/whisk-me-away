@@ -82,10 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(signupForm){
     if(Store.currentUser()){ location.replace('home.html'); return; }
 
-    /* the address dropdown, cities grouped under their governorate */
-    const areaSelect = document.getElementById('area');
-    areaSelect.innerHTML =
-      '<option value="" disabled selected>Choose your area</option>' + areaOptions();
+    /* the address search box - the datalist is what it searches */
+    document.getElementById('areaList').innerHTML = areaOptions();
 
     /* keep the phone box to digits only as it is typed */
     const phoneInput = document.getElementById('phone');
@@ -101,14 +99,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const email    = document.getElementById('email').value.trim();
       const phoneRaw = document.getElementById('phone').value;
       const phone    = cleanPhone(phoneRaw);
-      const area     = parseArea(document.getElementById('area').value);
+      const area     = normaliseArea(document.getElementById('area').value);
       const password = document.getElementById('password').value;
       const confirm  = document.getElementById('confirm').value;
 
       if(!name || !email || !password)  return say('Name, email and password are required.');
       if(!/^\S+@\S+\.\S+$/.test(email)) return say('That email does not look right.');
       if(!phoneIsValid(phoneRaw))       return say('Phone needs to be 7 or 8 digits.');
-      if(!area)                         return say('Please choose your area.');
+      if(!area)                         return say('Please pick your area from the list.');
       if(password.length < 6)           return say('Password needs at least 6 characters.');
       if(password !== confirm)          return say('The two passwords do not match.');
 
@@ -117,11 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
          database copies them into the profiles table. */
       const {data, error} = await sb.auth.signUp({
         email, password,
-        options:{ data:{
-          name, phone,
-          governorate: area.governorate,
-          city:        area.city
-        } }
+        options:{ data:{ name, phone, area } }
       });
       busy(signupForm, false);
 

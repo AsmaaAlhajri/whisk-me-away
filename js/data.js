@@ -246,19 +246,31 @@ const PRODUCTS = [
   {id:'g6', cat:'glasses', name:'Travel Tumbler',    jp:'Tabi',     price:19.500, tag:'',
    desc:'Sealed lid, matte blush finish, 400ml. Made for Kuwait traffic and long commutes.'},
 
-  /* --- Matcha drinks: made to order at the counter, like a cafe menu --- */
-  {id:'d1', cat:'drinks', name:'Iced Matcha Latte', jp:'Aisu Rate', price:2.250, tag:'Bestseller',
-   desc:'Ceremonial matcha whisked cold, poured over ice and fresh milk. The one we make most.'},
-  {id:'d2', cat:'drinks', name:'Hot Matcha Latte', jp:'Hotto Rate', price:2.250, tag:'Hot', art:'hotcup', skip:['ice'],
-   desc:'Steamed milk over a thick whisked shot, in a warm cup. Oat milk on request.'},
+  /* --- Matcha drinks: made to order at the counter, like a cafe menu ---
+     Temperature is an option now rather than a separate product, so
+     there is one "Matcha Latte" instead of an iced and a hot one.
+     Anything with fruit, boba or lemon is iced only and carries
+     skip:['temp'] so the choice never appears. --- */
+  {id:'d1', cat:'drinks', name:'Matcha Latte', jp:'Rate', price:2.250, tag:'Bestseller',
+   desc:'Ceremonial matcha whisked smooth with fresh milk. Iced or hot, the one we make most.'},
   {id:'d3', cat:'drinks', name:'Strawberry Matcha', jp:'Ichigo', price:2.750, tag:'Girls’ favourite',
+   skip:['temp'],
    desc:'Fresh strawberry at the bottom, milk and matcha layered on top. Stir before the first sip.'},
-  {id:'d4', cat:'drinks', name:'Sakura Matcha Latte', jp:'Sakura', price:2.500, tag:'New',
-   desc:'Cherry blossom syrup, matcha and cold milk, finished with a salted blossom. Iced or hot.'},
+  {id:'d4', cat:'drinks', name:'Sakura Matcha Latte', jp:'Sakura', price:2.500, tag:'',
+   desc:'Cherry blossom syrup, matcha and milk, finished with a salted blossom.'},
   {id:'d5', cat:'drinks', name:'Matcha Lemonade', jp:'Remon', price:2.000, tag:'Iced',
+   skip:['temp'],
    desc:'Matcha shaken with fresh lemon and soda water. Sharp, green and barely sweet.'},
   {id:'d6', cat:'drinks', name:'Matcha Boba', jp:'Boba', price:3.000, tag:'',
-   desc:'Brown sugar tapioca pearls under an iced matcha latte, with a wide straw.'},
+   skip:['temp'],
+   desc:'Brown sugar tapioca pearls under a matcha latte, with a wide straw.'},
+  {id:'d7', cat:'drinks', name:'Salted Vanilla Matcha', jp:'Banira', price:2.750, tag:'New',
+   desc:'Vanilla bean and a pinch of sea salt, which pulls the sweetness back and lets the matcha through.'},
+  {id:'d8', cat:'drinks', name:'Naughty Matcha', jp:'Ii Ko Ja Nai', price:3.000, tag:'New',
+   desc:'Our indulgent one: dark chocolate through the matcha under a thick cream top.'},
+  {id:'d9', cat:'drinks', name:'Mango Matcha', jp:'Mango', price:2.750, tag:'New',
+   skip:['temp'],
+   desc:'Ripe mango puree under cold matcha. Sweet, tropical and very orange-and-green.'},
 
   /* --- Whisk holders --- */
   {id:'h1', cat:'holders', name:'Blush Kusenaoshi', jp:'Kusenaoshi', price:9.750,  tag:'Bestseller',
@@ -288,6 +300,13 @@ const PRODUCTS = [
 const OPTION_GROUPS = {
 
   drinks: [
+    {id:'temp', label:'Iced or hot', jp:'Ondo', type:'single', required:true,
+     note:'Choose one', default:'iced',
+     choices:[
+       {id:'iced', name:'Iced', price:0},
+       {id:'hot',  name:'Hot',  price:0}
+     ]},
+
     {id:'milk', label:'Milk', jp:'Miruku', type:'single', required:true,
      note:'Choose one',
      choices:[
@@ -320,8 +339,10 @@ const OPTION_GROUPS = {
     {id:'shots', label:'Extra matcha shot', jp:'Shotto', type:'count',
      note:'Up to three', max:3, price:0.750},
 
+    /* how much ice only makes sense once the drink is iced */
     {id:'ice', label:'Ice', jp:'Kori', type:'single', required:true,
      note:'Choose one', default:'regular',
+     showIf:{group:'temp', value:'iced'},
      choices:[
        {id:'extra',   name:'Extra ice',   price:0},
        {id:'regular', name:'Regular ice', price:0},
@@ -344,62 +365,64 @@ const OPTION_GROUPS = {
 
 /* ============================================================
    KUWAIT DELIVERY AREAS
-   Cities grouped under their governorate. The address dropdown is
-   built straight from this, using one <optgroup> per governorate.
-   Add or move an area here and the form follows.
+   One flat list, no governorates. The address field is a search
+   box backed by a <datalist>: the customer types a few letters and
+   picks from what matches. Add an area here and both the signup
+   form and the checkout page pick it up.
    ============================================================ */
-const GOVERNORATES = [
-  {id:'capital', name:'Al Asimah (Capital)', cities:[
-    'Kuwait City','Sharq','Mirqab','Dasman','Qibla','Salhiya','Bneid Al-Qar',
-    'Dasma','Daiya','Mansouriya','Shamiya','Abdullah Al-Salem','Nuzha','Faiha',
-    'Kaifan','Khaldiya','Adailiya','Rawda','Yarmouk','Qadsiya','Qurtuba','Surra',
-    'Granada','Sulaibikhat','Doha','Jaber Al-Ahmad','Shuwaikh','Nahdha','Qairawan'
-  ]},
-  {id:'hawalli', name:'Hawalli', cities:[
-    'Hawalli','Salmiya','Rumaithiya','Bayan','Mishref','Salwa','Jabriya',
-    'Maidan Hawalli','Nugra','Shaab','Zahra','Hitteen','Salam','Siddeeq','Bidaa',
-    'Shuhada','Mubarak Al-Abdullah'
-  ]},
-  {id:'farwaniya', name:'Al Farwaniya', cities:[
-    'Farwaniya','Jleeb Al-Shuyoukh','Khaitan','Abraq Khaitan','Abdullah Al-Mubarak',
-    'Ardiya','Rabiya','Andalous','Firdous','Omariya','Rehab','Ishbiliya','Dhajeej',
-    'Sabah Al-Nasser','Rai'
-  ]},
-  {id:'mubarak', name:'Mubarak Al-Kabeer', cities:[
-    'Mubarak Al-Kabeer','Sabah Al-Salem','Messila','Adan','Qurain','Qusour',
-    'Funaitees','Abu Fatira','Abu Hasaniya','Wista','Sabhan'
-  ]},
-  {id:'ahmadi', name:'Al Ahmadi', cities:[
-    'Ahmadi','Fahaheel','Mangaf','Abu Halifa','Fintas','Mahboula','Riqqa','Hadiya',
-    'Sabahiya','Egaila','Jaber Al-Ali','Ali Sabah Al-Salem','Fahad Al-Ahmad',
-    'Sabah Al-Ahmad','Wafra','Khiran','Zour','Shuaiba'
-  ]},
-  {id:'jahra', name:'Al Jahra', cities:[
-    'Jahra','Saad Al-Abdullah','Naeem','Qasr','Waha','Oyoun','Nasseem','Taima',
-    'Sulaibiya','Amghara','Abdali','Kabd','Salmi'
-  ]}
+const AREAS = [
+  "Abdally", "Abdulla Al-Salem", "Abdullah Mubarak Al-Sabah", "Abu Ftaira",
+  "Abu Halifa", "Abu Hassaniah", "Adailiya", "AL Bida'a", "Al Masayel",
+  "Al Mutlaa", "Al Naayem", "Al Sheqaya", "Al Sour Gardens", "Al-Adan",
+  "Al-Fintas", "Al-Fnaitees", "Al-Nuwaiseeb", "Al-Qurain", "Al-Qusour",
+  "Al-Siddiq", "Amghara Industrial", "Andalus", "Ardhiya", "Ardhiya 4",
+  "Ardhiya 6", "Ashbeliah", "Bar Al-Jahra Governorate", "Bayan",
+  "Bnaid Al-Qar", "Daiya", "Dasma", "Dasman", "Dhaher", "Doha",
+  "East Ahmadi", "Egaila", "Fahad Al-Ahmad", "Fahaheel", "Faiha",
+  "Farwaniya", "Firdous", "Granada", "Hadiya", "Hawalli", "Hitteen",
+  "Jaber Al-Ahmad", "Jaber Al-Ali", "Jabriya", "Jahra", "Jahra Camps",
+  "Jahra-Industrial", "Janobyia Aljawakheer", "Jawakher Al Jahra", "Kabd",
+  "Kazima", "Khaitan", "Khaldiya", "Khiran City", "Kifan", "Kuwait City",
+  "Mahboula", "Maidan Hawally", "Mangaf", "Mansouriya", "Messila",
+  "Middle of Ahmadi", "Mina Abdulla", "Ministries Area", "Mirqab",
+  "Mishrif", "Mubarak Al-Abdullah", "Mubarak Al-Kabeer", "Mubarakiya Camps",
+  "Mubarakyia", "Naeem", "Nahda", "Nasseem", "New Wafra", "North Ahmadi",
+  "North West Jahra", "Northwest Sulaibikhat", "Nuzha", "Old Jahra",
+  "Om Alhaiman", "Omariya", "Oyoun", "Qadsiya", "Qairawan", "Qasr", "Qibla",
+  "Qortuba", "Rabiya", "Rai", "Rawda", "Rawdatain", "Rehab", "Riggai",
+  "Riqqa", "Rumaithiya", "Saad Al-Abdulla City", "Sabah Al-Ahmad 1",
+  "Sabah Al-Ahmad 2", "Sabah Al-Ahmad 3", "Sabah Al-Ahmad 4",
+  "Sabah Al-Ahmad 6", "Sabah Al-Ahmad Al-marine", "Sabah Al-Nasser",
+  "Sabah Al-Salim", "Sabah health region", "Sabahiya", "Salam", "Salhiya",
+  "Salmiya", "Salmy", "Salwa", "Shaab", "Shalehat Al-Khiran",
+  "Shalehat Al-Nuwaiseeb", "Shalehat Bneder", "Shalehat Dba'ayeh",
+  "Shalehat Doha", "Shalehat Jlea'a", "Shalehat Kazima",
+  "Shalehat Mina Abdullah", "Shalehat Subiya", "Shalehat Zoor", "Shamiya",
+  "Sharq", "Shuhada", "Shuwaikh", "Shuwaikh Industrial-1",
+  "Shuwaikh Industrial-2", "Shuwaikh Industrial-3", "Shuwaikh Port",
+  "South", "South Abdullah Al Mubarak", "South Al Mutlaa",
+  "South Al Mutlaa 1", "South Al Mutlaa 10", "South Al Mutlaa 12",
+  "South Al Mutlaa 2", "South Al Mutlaa 3", "South Al Mutlaa 4",
+  "South Al Mutlaa 5", "South Al Mutlaa 6", "South Al Mutlaa 7",
+  "South Al Mutlaa 8", "South Al Mutlaa 9", "South Amghara", "Sulaibikhat",
+  "Sulaibiya", "Sulaibiya Agricultural", "Sulaibiya Industrial 1",
+  "Sulaibiya Industrial 2", "Sulaibiya Industrial 3", "Sulaibyia", "Surra",
+  "Taima", "Umm Al-Aish", "Wafra", "Wafra Farms", "Waha",
+  "West Abdullah Al-Mubarak", "Yarmouk", "Zahra", "Zoor"
 ];
 
-/* "hawalli|Salmiya" is what the dropdown stores; these unpack it */
-function areaValue(govId, city){ return govId + '|' + city; }
-
-function parseArea(value){
-  if(!value || !value.includes('|')) return null;
-  const [govId, city] = value.split('|');
-  const gov = GOVERNORATES.find(g => g.id === govId);
-  if(!gov || !gov.cities.includes(city)) return null;
-  return {govId, governorate: gov.name, city};
+/* the <option> list behind the search box */
+function areaOptions(){
+  return AREAS.map(a => `<option value="${a}"></option>`).join('');
 }
 
-/* the <optgroup> markup for an address dropdown */
-function areaOptions(selectedValue){
-  return GOVERNORATES.map(g => `
-    <optgroup label="${g.name}">
-      ${g.cities.map(c => {
-        const v = areaValue(g.id, c);
-        return `<option value="${v}"${v === selectedValue ? ' selected' : ''}>${c}</option>`;
-      }).join('')}
-    </optgroup>`).join('');
+/* Accept what was typed only if it really is one of our areas, and
+   give it back in our spelling - so "salmiya" is stored as "Salmiya".
+   Returns null for anywhere we do not deliver. */
+function normaliseArea(text){
+  const t = String(text || '').trim().toLowerCase();
+  if(!t) return null;
+  return AREAS.find(a => a.toLowerCase() === t) || null;
 }
 
 /* ============================================================
@@ -444,12 +467,29 @@ function needsOptions(product){
   return optionGroupsFor(product).length > 0;
 }
 
+/* Some groups only apply once another has been answered: "how much
+   ice" is meaningless on a hot drink. A group whose showIf points at
+   a group this product does not even have (an iced-only drink has no
+   temperature choice) still counts as visible. */
+function groupIsVisible(product, group, opts){
+  const cond = group.showIf;
+  if(!cond) return true;
+  const hasControlling = optionGroupsFor(product).some(g => g.id === cond.group);
+  if(!hasControlling) return true;
+  return (opts ? opts[cond.group] : null) === cond.value;
+}
+
+/* the groups actually on show for the current choices */
+function visibleGroups(product, opts){
+  return optionGroupsFor(product).filter(g => groupIsVisible(product, g, opts));
+}
+
 /* price of ONE unit with the chosen options applied */
 function configuredPrice(product, opts){
   if(!product) return 0;
   let price = product.price, mult = 1;
 
-  optionGroupsFor(product).forEach(group => {
+  visibleGroups(product, opts).forEach(group => {
     const chosen = opts ? opts[group.id] : null;
     if(chosen === undefined || chosen === null) return;
 
@@ -473,7 +513,7 @@ function configuredPrice(product, opts){
 /* a short line for the basket: "Oat milk - Vanilla - Less ice" */
 function optionSummary(product, opts){
   const bits = [];
-  optionGroupsFor(product).forEach(group => {
+  visibleGroups(product, opts).forEach(group => {
     const chosen = opts ? opts[group.id] : null;
     if(chosen === undefined || chosen === null) return;
 

@@ -42,7 +42,9 @@
           <div class="field-grid">
             <div class="field field--wide">
               <label for="coArea">Area</label>
-              <select id="coArea" class="field__select"></select>
+              <input type="text" id="coArea" list="areaList" autocomplete="off"
+                     placeholder="Start typing, e.g. Salmiya" spellcheck="false">
+              <datalist id="areaList"></datalist>
             </div>
             <div class="field">
               <label for="coBlock">Block</label>

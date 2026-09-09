@@ -5,21 +5,6 @@
    this is where the address and gift details are collected.
    ============================================================ */
 
-/* the customer's saved area, as a dropdown value */
-function profileAreaValue(user){
-  if(!user || !user.city) return '';
-
-  const byName = GOVERNORATES.find(g => g.name === user.governorate);
-  if(byName && byName.cities.includes(user.city)) return areaValue(byName.id, user.city);
-
-  /* older accounts stored only a free-text area, so fall back to
-     finding that city under whichever governorate owns it */
-  const lc = user.city.toLowerCase();
-  const gov = GOVERNORATES.find(g => g.cities.some(c => c.toLowerCase() === lc));
-  if(!gov) return '';
-  return areaValue(gov.id, gov.cities.find(c => c.toLowerCase() === lc));
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   await AppReady;
 
@@ -38,12 +23,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     msg.classList.toggle('ok', ok);
   };
 
-  /* ---------- address dropdown, prefilled from the account ---------- */
-  const areaSelect = document.getElementById('coArea');
-  const saved = profileAreaValue(user);
-  areaSelect.innerHTML =
-    `<option value="" disabled${saved ? '' : ' selected'}>Choose the area</option>` +
-    areaOptions(saved);
+  /* ---------- address search box, prefilled from the account ---------- */
+  document.getElementById('areaList').innerHTML = areaOptions();
+  const areaInput = document.getElementById('coArea');
+  areaInput.value = normaliseArea(user.area) || '';
 
   /* ---------- digits-only phone for the recipient ---------- */
   const giftPhone = document.getElementById('giftPhone');
@@ -94,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const placeBtn = document.getElementById('placeBtn');
 
   placeBtn.addEventListener('click', async () => {
-    const area   = parseArea(areaSelect.value);
+    const area   = normaliseArea(areaInput.value);
     const block  = document.getElementById('coBlock').value.trim();
     const street = document.getElementById('coStreet').value.trim();
     const avenue = document.getElementById('coAvenue').value.trim();
@@ -107,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const giftText = giftMsg.value.trim();
 
     /* ---- validation ---- */
-    if(!area)   return say('Please choose the delivery area.');
+    if(!area)   return say('Please pick the delivery area from the list.');
     if(!block)  return say('Please add the block.');
     if(!street) return say('Please add the street.');
     if(!house)  return say('Please add the house or building number.');
@@ -132,8 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .insert({
         user_id:      user.id,
         total,
-        governorate:  area.governorate,
-        city:         area.city,
+        area,
         block, street, house,
         avenue:       avenue || null,
         is_gift:      gift,

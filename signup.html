@@ -60,10 +60,13 @@
 
       <div class="field">
         <label for="area">Area in Kuwait</label>
-        <!-- options are grouped by governorate, filled in by js/auth.js -->
-        <select id="area" class="field__select" autocomplete="address-level2"></select>
+        <!-- a search box: type a few letters and pick from the matches.
+             The list itself is filled in by js/auth.js from data.js -->
+        <input type="text" id="area" list="areaList" autocomplete="off"
+               placeholder="Start typing, e.g. Salmiya" spellcheck="false">
+        <datalist id="areaList"></datalist>
         <svg class="field__icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9l6 6 6-6"/>
+          <circle cx="11" cy="11" r="6"/><path d="M15.5 15.5 20 20"/>
         </svg>
       </div>
 

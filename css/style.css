@@ -612,6 +612,8 @@ p{margin:0;}
   font-size:clamp(48px,9.5vw,100px);
   line-height:.94;
   color:var(--forest);
+  /* a slight shadow, which also lifts the words off the video */
+  text-shadow:0 2px 3px rgba(46,70,35,.16), 0 10px 26px rgba(46,70,35,.14);
 }
 .hero__title em{display:block;font-style:italic;color:var(--blush);}
 .hero__jp{
@@ -1635,6 +1637,17 @@ p{margin:0;}
   padding:5px 10px;border-radius:var(--radius-pill);
   background:var(--blush);color:var(--forest);
 }
+
+/* ---- editing the account details ---- */
+.edit-form{margin-top:4px;}
+.edit-form .field{margin-bottom:13px;}
+.edit-form__actions{
+  display:flex;
+  gap:9px;
+  margin-top:4px;
+}
+.edit-form__actions .btn{flex:1;padding:12px 14px;font-size:10.5px;letter-spacing:.14em;}
+#editBtn{margin-top:18px;}
 
 /* ---------- 24. RESPONSIVE ---------- */
 @media (max-width:900px){

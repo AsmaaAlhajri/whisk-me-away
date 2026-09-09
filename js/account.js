@@ -26,14 +26,14 @@ const STATUS_LABEL = {
 /* "Block 4, Street 12, Avenue 3, House 21 - Salmiya, Hawalli" */
 function addressLine(order){
   const a = order.address;
-  if(!a || !a.city) return '';
+  if(!a || !a.area) return '';
   const parts = [
     a.block  ? 'Block ' + a.block   : null,
     a.street ? 'Street ' + a.street : null,
     a.avenue ? 'Avenue ' + a.avenue : null,
     a.house  ? 'House ' + a.house   : null
   ].filter(Boolean);
-  const where = [a.city, a.governorate].filter(Boolean).join(', ');
+  const where = a.area || '';
   return `<p class="order__addr">${esc(parts.join(', '))}${
     parts.length && where ? ' &mdash; ' : ''}${esc(where)}</p>`;
 }
@@ -62,22 +62,81 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(!user) return;
 
   /* ---------- her info ---------- */
-  document.getElementById('avatar').textContent = user.name.trim()[0].toUpperCase();
-  document.getElementById('userName').textContent = user.name;
+  function renderInfo(){
+    const u = Store.currentUser();
+    document.getElementById('avatar').textContent = u.name.trim()[0].toUpperCase();
+    document.getElementById('userName').textContent = u.name;
+    const rows = [
+      ['Email', u.email],
+      ['Phone', u.phone || 'Not added yet'],
+      ['Area',  u.area  || 'Not added yet'],
+      ['Member since', formatDate(u.joined)]
+    ];
+    document.getElementById('infoList').innerHTML = rows.map(([label, value]) => `
+      <div class="info-row">
+        <dt>${esc(label)}</dt>
+        <dd>${esc(value)}</dd>
+      </div>
+    `).join('');
+  }
+  renderInfo();
 
-  const rows = [
-    ['Email', user.email],
-    ['Phone', user.phone || 'Not added yet'],
-    ['Area',  user.city  || 'Not added yet'],
-    ['Governorate', user.governorate || 'Not added yet'],
-    ['Member since', formatDate(user.joined)]
-  ];
-  document.getElementById('infoList').innerHTML = rows.map(([label, value]) => `
-    <div class="info-row">
-      <dt>${esc(label)}</dt>
-      <dd>${esc(value)}</dd>
-    </div>
-  `).join('');
+  /* ---------- editing name, phone and area ---------- */
+  const editBtn  = document.getElementById('editBtn');
+  const editForm = document.getElementById('editForm');
+  const infoList = document.getElementById('infoList');
+  const edMsg    = document.getElementById('edMsg');
+  document.getElementById('areaList').innerHTML = areaOptions();
+
+  const edName  = document.getElementById('edName');
+  const edPhone = document.getElementById('edPhone');
+  const edArea  = document.getElementById('edArea');
+
+  edPhone.addEventListener('input', () => {
+    const clean = cleanPhone(edPhone.value);
+    if(edPhone.value !== clean) edPhone.value = clean;
+  });
+
+  function showForm(on){
+    editForm.hidden = !on;
+    infoList.hidden = on;
+    editBtn.hidden  = on;
+    if(on){
+      const u = Store.currentUser();
+      edName.value  = u.name;
+      edPhone.value = u.phone;
+      edArea.value  = u.area;
+      edMsg.textContent = '';
+      edName.focus();
+    }
+  }
+
+  editBtn.addEventListener('click', () => showForm(true));
+  document.getElementById('cancelEdit').addEventListener('click', () => showForm(false));
+
+  editForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name  = edName.value.trim();
+    const phone = cleanPhone(edPhone.value);
+    const area  = normaliseArea(edArea.value);
+
+    if(!name)                       { edMsg.textContent = 'Please add your name.'; return; }
+    if(!phoneIsValid(edPhone.value)){ edMsg.textContent = 'Phone needs to be 7 or 8 digits.'; return; }
+    if(!area)                       { edMsg.textContent = 'Please pick your area from the list.'; return; }
+
+    const save = editForm.querySelector('button[type="submit"]');
+    save.disabled = true; save.textContent = 'Saving...';
+
+    const {error} = await Store.saveProfile({name, phone, area});
+
+    save.disabled = false; save.textContent = 'Save changes';
+    if(error){ edMsg.textContent = 'Could not save. Please try again.'; return; }
+
+    edMsg.textContent = '';      /* don't leave a stale error behind */
+    renderInfo();
+    showForm(false);
+    showToast('Your details are updated.');
+  });
 
   /* ---------- her orders ---------- */
   const box = document.getElementById('orders');

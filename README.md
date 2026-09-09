@@ -135,7 +135,16 @@ Prices are Kuwaiti Dinar and shown to three decimals. Delivery is a flat
 `SHIPPING` constant in `js/app.js`.
 
 Matcha Drinks is a cafe menu, not equipment: those are real drinks made to order,
-priced like a coffee shop (2-3 KD) rather than like a tin or a bowl.
+priced like a coffee shop (2-3 KD) rather than like a tin or a bowl. Temperature
+is an option rather than a separate product, so there is one Matcha Latte. A
+drink that only works cold - anything with fruit, boba or lemon - carries
+`skip:['temp']` so the iced/hot choice never appears. An option group can also
+depend on another: "how much ice" carries `showIf:{group:'temp',value:'iced'}`
+and disappears the moment the drink is switched to hot, dropping out of the
+price and the basket summary with it.
+
+**Editing an account**: the My Account page has an Edit details button for name,
+phone and area, saved straight back to `profiles`.
 
 Product pictures are hand-drawn SVGs in the `ART` object in `js/data.js`, one per
 category. A single product can override its category icon by naming another entry
@@ -145,11 +154,12 @@ swap the `${ART[cat.id]}` line in `js/category.js` for an `<img>`.
 
 ## Addresses, phones and gifts
 
-**Areas** come from `GOVERNORATES` in `js/data.js` - six governorates with
-their cities. The dropdown is built from it with one `<optgroup>` per
-governorate, and the value is stored as `hawalli|Salmiya`. Move a city between
-governorates there and every form follows. Worth checking the lists match the
-areas you actually deliver to.
+**Areas** are one flat list, `AREAS` in `js/data.js` - 166 of them, no
+governorates. The address field is a search box backed by a `<datalist>`, so
+the customer types a few letters and picks a match. `normaliseArea()` accepts
+only a real area and returns it in our spelling, so "salmiya" is stored as
+"Salmiya" and anything else is refused. Add or rename an area there and the
+signup form, the checkout page and the account editor all follow.
 
 **Phone numbers** are digits only, 7 or 8 of them (8 for Kuwaiti mobiles, 7 for
 some landlines). `cleanPhone()` strips a `+965` prefix and anything non-numeric;
@@ -157,8 +167,7 @@ some landlines). `cleanPhone()` strips a `+965` prefix and anything non-numeric;
 number is refused rather than quietly trimmed into a different number. The
 database enforces the same rule with a CHECK constraint.
 
-**Checkout** collects governorate, city, block, street, avenue (optional) and
-house. Tick the gift box and the recipient's name and mobile become required,
+**Checkout** collects area, block, street, avenue (optional) and house. Tick the gift box and the recipient's name and mobile become required,
 plus an optional note capped at 250 characters. All of that is enforced twice:
 in `js/checkout.js` for a helpful message, and by CHECK constraints on the
 `orders` table so a bad row cannot be written even by hand.

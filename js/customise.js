@@ -100,7 +100,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const qtyValue  = document.getElementById('qtyValue');
   const liveTotal = document.getElementById('liveTotal');
 
+  /* a group can depend on another - "how much ice" disappears the
+     moment the drink is switched to hot */
+  function applyVisibility(){
+    groups.forEach(g => {
+      const field = form.querySelector(`fieldset[data-group="${g.id}"]`);
+      if(field) field.hidden = !groupIsVisible(product, g, chosen);
+    });
+  }
+
   function refresh(){
+    applyVisibility();
     qtyValue.textContent  = qty;
     liveTotal.textContent = KD(configuredPrice(product, chosen) * qty) + ' KD';
   }

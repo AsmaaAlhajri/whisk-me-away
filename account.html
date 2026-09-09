@@ -21,6 +21,34 @@
         <h2 class="panel__title" style="text-align:center" id="userName">&nbsp;</h2>
         <p class="panel__jp" style="text-align:center">Watashi no joho</p>
         <dl class="info-list" id="infoList"></dl>
+
+        <button type="button" class="btn btn--ghost btn--full" id="editBtn">Edit details</button>
+
+        <!-- swapped in place of the list above when editing -->
+        <form class="edit-form" id="editForm" novalidate hidden>
+          <div class="field">
+            <label for="edName">Full name</label>
+            <input type="text" id="edName" maxlength="80" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="edPhone">Phone <span class="field__hint">7 or 8 digits</span></label>
+            <input type="tel" id="edPhone" inputmode="numeric" maxlength="8"
+                   pattern="[0-9]{7,8}" autocomplete="tel">
+          </div>
+          <div class="field">
+            <label for="edArea">Area</label>
+            <input type="text" id="edArea" list="areaList" autocomplete="off"
+                   placeholder="Start typing, e.g. Salmiya" spellcheck="false">
+            <datalist id="areaList"></datalist>
+          </div>
+
+          <p class="form-msg" id="edMsg" role="status" aria-live="polite"></p>
+
+          <div class="edit-form__actions">
+            <button type="submit" class="btn btn--forest">Save changes</button>
+            <button type="button" class="btn btn--ghost" id="cancelEdit">Cancel</button>
+          </div>
+        </form>
       </aside>
 
       <!-- ---- her orders ---- -->
