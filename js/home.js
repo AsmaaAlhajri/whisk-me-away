@@ -20,16 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ============================================================
    The hero background video.
 
-   YouTube's plain autoplay is unreliable - it can be slow to buffer or
-   refused outright - and a half-started player shows a grey spinner,
-   which looks broken on a pale page. So the video layer starts fully
-   transparent and only fades in once the player reports it is actually
-   PLAYING. If that never happens (no network, autoplay blocked, video
-   removed) the hero simply stays beige, which is a fine hero on its own.
+   The clip is our own file in media/, so it just autoplays muted on a
+   loop. The layer still sits behind an opaque beige lid until the video
+   is genuinely running, so nobody sees a blank box while it loads.
    ============================================================ */
 function startHeroVideo(){
   const layer = document.querySelector('.hero__video');
-  if(!layer) return;
+  const video = document.getElementById('heroVideo');
+  if(!layer || !video) return;
 
   /* someone who asked for less motion gets no video at all */
   if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){
@@ -37,18 +35,14 @@ function startHeroVideo(){
     return;
   }
 
-  window.onYouTubeIframeAPIReady = () => {
-    new YT.Player('heroVideo', {
-      events:{
-        onReady: e => { e.target.mute(); e.target.playVideo(); },
-        onStateChange: e => {
-          if(e.data === YT.PlayerState.PLAYING) layer.classList.add('is-ready');
-        }
-      }
-    });
-  };
+  const reveal = () => layer.classList.add('is-ready');
+  video.addEventListener('playing', reveal, {once:true});
 
-  const tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(tag);
+  /* the autoplay attribute is usually enough, but a few browsers only
+     start on an explicit play(). If they refuse it anyway, show the
+     first frame rather than leaving the lid closed on a beige box. */
+  const started = video.play();
+  if(started && started.catch){
+    started.catch(() => video.addEventListener('loadeddata', reveal, {once:true}));
+  }
 }

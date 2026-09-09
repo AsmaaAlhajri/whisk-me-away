@@ -45,6 +45,7 @@ js/category.js      the product grid
 js/story.js         the five growing regions and the map pins
 js/steps.js         tap-to-play for the step animations (hover is pure CSS)
 js/account.js       details + orders
+media/matcha.mp4    the looping video behind the home hero
 ```
 
 ## How it works
@@ -64,6 +65,13 @@ Log out. Login and signup have no top bar, since there is no cart or account yet
 the **home page only**. The single line that decides this is at the bottom of
 that file: `if(page === 'home') startSakura(20)`. Raise the number for more
 petals, or add other page names to put it back on more pages.
+
+**The hero video** is `media/matcha.mp4`, played muted on a loop behind the
+home hero. A beige veil over it is clear in the middle and solid at every edge,
+so the footage dissolves into the page and is gone before the next section. The
+layer stays behind an opaque beige lid until the video is actually running, so
+no blank box is ever visible. To swap the clip, drop a new .mp4 in `media/` and
+change the `<source src>` in `home.html`.
 
 **The theme** lives entirely in the tokens at the top of `css/style.css`. The
 seven brand colours are unchanged; what changed is their roles — the greens are
