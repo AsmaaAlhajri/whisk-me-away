@@ -148,10 +148,19 @@ everything else, which is picked off a shelf. A mixed order takes the shorter
 window - somebody is still making the drink.
 
 Once the time is up the button fades and stops cancelling, but it stays
-clickable so it can explain itself rather than refusing in silence: it says
-*"Our matcha barista is already making your drink at our matcha bar"* - drink or
-drinks, counted from the order - or, for an order with no drinks, that it is
-already packed for delivery. Cancelling asks for a second tap first, since it
+clickable so it can explain itself rather than refusing in silence. What it says
+depends on how far the order has actually got, because there is no point telling
+her a barista is making a drink she has already been handed:
+
+| Where the order is | What the button says |
+|---|---|
+| Still preparing, with drinks | Our matcha barista is already making your drink / drinks at our matcha bar |
+| Still preparing, no drinks | It is already packed for delivery |
+| Delivering | It is already on its way to you |
+| Delivered | It has already been delivered |
+
+"drink" or "drinks" is counted from the order itself, so one latte reads
+singular and three read plural. Cancelling asks for a second tap first, since it
 cannot be undone, and a cancelled order shows a **Cancelled** badge with the
 time it was cancelled.
 

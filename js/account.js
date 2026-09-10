@@ -23,8 +23,18 @@ function canCancel(order){
   return order.status !== 'cancelled' && minutesLeft(order) > 0;
 }
 
-/* what we tell her once that moment has gone */
+/* what we tell her once that moment has gone. How far the order has
+   travelled matters more than what is in it: there is no point saying a
+   barista is making a drink she has already been handed. */
 function tooLateMessage(order){
+  const status = statusOf(order);
+
+  if(status === 'delivered'){
+    return 'This order has already been delivered, so it can no longer be cancelled.';
+  }
+  if(status === 'delivering'){
+    return 'This order is already on its way to you, so it can no longer be cancelled.';
+  }
   if(order.drinks > 0){
     return order.drinks === 1
       ? 'Our matcha barista is already making your drink at our matcha bar.'
