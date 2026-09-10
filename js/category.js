@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="prod-card__foot">
           <span class="price">${KD(p.price)} <small>KD</small></span>
           ${needsOptions(p)
-            ? `<a class="add-btn" href="customise.html?id=${p.id}" data-nav>Customise</a>`
+            ? `<a class="add-btn" href="customise.html?id=${p.id}" data-nav>Add to basket</a>`
             : `<button class="add-btn" data-add="${p.id}">Add to basket</button>`}
         </div>
       </div>

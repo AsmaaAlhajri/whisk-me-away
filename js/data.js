@@ -267,7 +267,7 @@ const PRODUCTS = [
   {id:'d7', cat:'drinks', name:'Salted Vanilla Matcha', jp:'Banira', price:2.750, tag:'New',
    desc:'Vanilla bean and a pinch of sea salt, which pulls the sweetness back and lets the matcha through.'},
   {id:'d8', cat:'drinks', name:'Naughty Matcha', jp:'Ii Ko Ja Nai', price:3.000, tag:'New',
-   desc:'Our indulgent one: dark chocolate through the matcha under a thick cream top.'},
+   desc:'Vanilla, milk and matcha under a sweet cold foam.'},
   {id:'d9', cat:'drinks', name:'Mango Matcha', jp:'Mango', price:2.750, tag:'New',
    skip:['temp'],
    desc:'Ripe mango puree under cold matcha. Sweet, tropical and very orange-and-green.'},
