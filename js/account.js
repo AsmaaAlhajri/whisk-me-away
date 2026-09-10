@@ -2,25 +2,56 @@
    account.js - her details and her orders
    ============================================================ */
 
-/* In a real shop the warehouse updates the status. There is no
-   backend here, so the demo moves an order along by itself:
-   preparing for 2 minutes, shipped until 10, then delivered.
-   Change these two numbers (or just read order.status) whenever
-   you plug in a real API. */
-const PREPARING_MINUTES = 2;
-const SHIPPED_MINUTES   = 10;
+/* How long she has to change her mind. A drink is made to order the
+   moment it reaches the bar, so that window is short; everything else
+   is picked off a shelf and can wait an hour. The database enforces
+   the same two numbers, so keep them in step with the
+   order_cancel_minutes() function in Supabase. */
+const CANCEL_MINUTES_WITH_DRINKS = 10;
+const CANCEL_MINUTES_OTHERWISE   = 60;
+
+function cancelMinutes(order){
+  return order.drinks > 0 ? CANCEL_MINUTES_WITH_DRINKS : CANCEL_MINUTES_OTHERWISE;
+}
+function minutesSince(order){
+  return (Date.now() - new Date(order.date).getTime()) / 60000;
+}
+function minutesLeft(order){
+  return cancelMinutes(order) - minutesSince(order);
+}
+function canCancel(order){
+  return order.status !== 'cancelled' && minutesLeft(order) > 0;
+}
+
+/* what we tell her once that moment has gone */
+function tooLateMessage(order){
+  if(order.drinks > 0){
+    return order.drinks === 1
+      ? 'Our matcha barista is already making your drink at our matcha bar.'
+      : 'Our matcha barista is already making your drinks at our matcha bar.';
+  }
+  return 'This order is already packed for delivery, so it can no longer be cancelled.';
+}
+
+/* In a real shop the kitchen updates the status. There is no back office
+   here, so the demo moves an order along by itself - it stays "preparing"
+   for exactly as long as it can still be cancelled, so the badge and the
+   button never contradict each other, then ships, then arrives. */
+const SHIPPED_EXTRA_MINUTES = 30;
 
 function statusOf(order){
-  const minutes = (Date.now() - new Date(order.date).getTime()) / 60000;
-  if(minutes < PREPARING_MINUTES) return 'preparing';
-  if(minutes < SHIPPED_MINUTES)   return 'shipped';
+  if(order.status === 'cancelled') return 'cancelled';
+  const minutes = minutesSince(order);
+  if(minutes < cancelMinutes(order))                       return 'preparing';
+  if(minutes < cancelMinutes(order) + SHIPPED_EXTRA_MINUTES) return 'shipped';
   return 'delivered';
 }
 
 const STATUS_LABEL = {
   preparing: 'Preparing',
   shipped:   'On the way',
-  delivered: 'Delivered'
+  delivered: 'Delivered',
+  cancelled: 'Cancelled'
 };
 
 /* "Block 4, Street 12, Avenue 3, House 21 - Salmiya, Hawalli" */
@@ -53,6 +84,17 @@ function formatDate(iso){
   return new Date(iso).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
+}
+
+function formatTime(iso){
+  return new Date(iso).toLocaleTimeString('en-GB', {
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
+/* "10 Sept 2026 at 3:42 pm" */
+function formatWhen(iso){
+  return formatDate(iso) + ' at ' + formatTime(iso);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -140,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- her orders ---------- */
   const box = document.getElementById('orders');
-  const orders = await Store.orders();
+  let orders = await Store.orders();
 
   if(orders.length === 0){
     box.innerHTML = `
@@ -154,14 +196,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         <a class="btn btn--primary" href="categories.html" data-nav>Start shopping</a>
       </div>`;
   } else {
-    box.innerHTML = orders.map(order => {
-      const status = statusOf(order);
+
+    /* the cancel button fades on its own once the window closes, so the
+       list repaints itself every half minute rather than only on load */
+    function cancelRow(order){
+      if(order.status === 'cancelled'){
+        return order.cancelledAt
+          ? `<p class="order__cancelled">Cancelled ${esc(formatWhen(order.cancelledAt))}</p>`
+          : '';
+      }
+      const left = minutesLeft(order);
+      const open = left > 0;
       return `
-        <article class="order">
+        <div class="order__actions">
+          <button type="button" class="order__cancel${open ? '' : ' is-closed'}"
+                  data-cancel="${esc(order.id)}"${open ? '' : ' aria-disabled="true"'}>
+            ${open
+              ? `Cancel order &middot; ${Math.max(1, Math.ceil(left))} min left`
+              : 'Cancel order'}
+          </button>
+        </div>`;
+    }
+
+    function paint(){
+      box.innerHTML = orders.map(order => {
+        const status = statusOf(order);
+        return `
+        <article class="order${status === 'cancelled' ? ' is-cancelled' : ''}">
           <div class="order__top">
             <div>
               <div class="order__id">${esc(order.id)}</div>
-              <div class="order__date">${formatDate(order.date)}</div>
+              <div class="order__date">${esc(formatWhen(order.date))}</div>
             </div>
             <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               ${order.gift ? '<span class="gift-tag">Gift</span>' : ''}
@@ -182,8 +247,57 @@ document.addEventListener('DOMContentLoaded', async () => {
             <span>Total paid</span>
             <span class="order__total">${KD(order.total)} KD</span>
           </div>
+          ${cancelRow(order)}
         </article>`;
-    }).join('');
+      }).join('');
+    }
+    paint();
+
+    /* keep the countdown honest without a reload, but never yank the
+       button out from under a second tap */
+    setInterval(() => {
+      if(!box.querySelector('.is-armed')) paint();
+    }, 30000);
+
+    box.addEventListener('click', async e => {
+      const btn = e.target.closest('[data-cancel]');
+      if(!btn) return;
+
+      const order = orders.find(o => o.id === btn.dataset.cancel);
+      if(!order) return;
+
+      /* the button stays clickable when it is faded, so it can explain
+         itself rather than just refusing silently */
+      if(!canCancel(order)) return showToast(tooLateMessage(order));
+
+      /* cancelling cannot be undone, so ask for a second tap */
+      if(!btn.dataset.armed){
+        btn.dataset.armed = '1';
+        btn.classList.add('is-armed');
+        btn.textContent = 'Tap again to cancel';
+        setTimeout(() => { if(btn.isConnected && btn.dataset.armed) paint(); }, 4000);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Cancelling...';
+
+      const {error} = await Store.cancelOrder(order.id);
+
+      if(error){
+        /* the window may have closed while she was deciding */
+        orders = await Store.orders();
+        paint();
+        return showToast(/time to cancel/i.test(error.message || '')
+          ? tooLateMessage(order)
+          : 'Could not cancel that order. Please try again.');
+      }
+
+      order.status = 'cancelled';
+      order.cancelledAt = new Date().toISOString();
+      paint();
+      showToast(`Order ${order.id} is cancelled.`);
+    });
   }
 
   document.querySelectorAll('[data-nav]').forEach(link => {

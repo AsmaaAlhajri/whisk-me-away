@@ -311,7 +311,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         name:       p.name,
         qty:        i.qty,
         price:      linePrice(i),
-        options:    optionSummary(p, i.opts) || null
+        options:    optionSummary(p, i.opts) || null,
+        /* the catalogue lives in js/data.js, so the line carries its own
+           category - it is what decides the cancellation window later */
+        category:   p.cat
       };
     });
     await sb.from('order_items').insert(lines);

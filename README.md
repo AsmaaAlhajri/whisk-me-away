@@ -63,7 +63,8 @@ calls the API with that key gets an empty list back; writes are refused.
 
 Tables: `profiles` (name, phone, area), `addresses` (up to four saved
 addresses per customer), `cart_items` (one row per configured basket line),
-`orders` and `order_items`. A trigger on signup copies name, phone and area
+`orders` (with `placed_at` and `cancelled_at`) and `order_items` (each line
+keeps its `category`, which decides how long the order can be cancelled). A trigger on signup copies name, phone and area
 into `profiles` automatically.
 
 **Login is real.** Supabase Auth hashes and checks passwords on its servers -
@@ -126,10 +127,39 @@ is why the page calls it illustrative.
 Each one is written as `.step:hover .thing { animation: ... }`, so nothing moves
 until you hover; `js/steps.js` only adds the same effect on tap for phones.
 
-**Order status** advances by itself in the demo: preparing for 2 minutes, then
-on the way, then delivered. The two numbers are at the top of `js/account.js`.
-The database stores a real `status` column, so swap `statusOf()` for that column
-once someone is actually updating orders.
+**Order status** advances by itself in the demo: an order stays *preparing* for
+exactly as long as it can still be cancelled, then goes on the way, then
+delivered - so the badge and the cancel button never contradict each other. The
+numbers are at the top of `js/account.js`. The database stores a real `status`
+column, so swap `statusOf()` for that column once someone is actually updating
+orders.
+
+**Cancelling an order.** Every order in My Account shows the day *and time* it
+was placed, and a Cancel order button counting down the minutes she has left.
+How long she gets depends on what she bought: **ten minutes** if the order
+contains a matcha drink, because a barista starts making it, and **an hour** for
+everything else, which is picked off a shelf. A mixed order takes the shorter
+window - somebody is still making the drink.
+
+Once the time is up the button fades and stops cancelling, but it stays
+clickable so it can explain itself rather than refusing in silence: it says
+*"Our matcha barista is already making your drink at our matcha bar"* - drink or
+drinks, counted from the order - or, for an order with no drinks, that it is
+already packed for delivery. Cancelling asks for a second tap first, since it
+cannot be undone, and a cancelled order shows a **Cancelled** badge with the
+time it was cancelled.
+
+The countdown repaints every thirty seconds, so a button fades while she is
+looking at the page rather than only after a reload.
+
+None of that is left to the browser. A `guard_order_update()` trigger on
+`orders` re-checks the window against `placed_at` and refuses a late
+cancellation, and it also refuses *any* other change to an order - so a page
+left open overnight, or a hand-written API call, cannot rewrite a total, fake a
+delivery, backdate `placed_at` to reopen the window, or cancel twice. The window
+itself comes from `order_cancel_minutes()`, which reads the `category` recorded
+on each order line, so those ten and sixty minutes live in the database as well
+as in `js/account.js` - change them in both.
 
 **Customising an order.** Drinks and matcha powder open `customise.html` before
 going in the basket; everything else adds in one click. The choices live in

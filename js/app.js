@@ -169,26 +169,48 @@ const Store = {
   async orders(){
     if(!this._user) return [];
     const {data, error} = await sb.from('orders')
-      .select(`code,status,total,placed_at,
+      .select(`code,status,total,placed_at,cancelled_at,
                area,block,street,avenue,house,
                is_gift,gift_name,gift_phone,gift_message,
-               order_items(name,qty,price,options)`)
+               order_items(name,qty,price,options,category)`)
       .eq('user_id', this._user.id)
       .order('placed_at', {ascending:false});
 
     if(error) return [];
-    return (data || []).map(o => ({
-      id:     o.code,
-      date:   o.placed_at,
-      status: o.status,
-      total:  Number(o.total),
-      address:{area:o.area, block:o.block, street:o.street,
-               avenue:o.avenue, house:o.house},
-      gift:   o.is_gift ? {name:o.gift_name, phone:o.gift_phone, message:o.gift_message} : null,
-      items:  (o.order_items || []).map(i => ({
-        name: i.name, qty: i.qty, price: Number(i.price), options: i.options
-      }))
-    }));
+    return (data || []).map(o => {
+      const items = (o.order_items || []).map(i => ({
+        name: i.name, qty: i.qty, price: Number(i.price),
+        options: i.options, category: i.category
+      }));
+      return {
+        id:     o.code,
+        date:   o.placed_at,
+        cancelledAt: o.cancelled_at,
+        status: o.status,
+        total:  Number(o.total),
+        address:{area:o.area, block:o.block, street:o.street,
+                 avenue:o.avenue, house:o.house},
+        gift:   o.is_gift ? {name:o.gift_name, phone:o.gift_phone, message:o.gift_message} : null,
+        items,
+        /* how many drinks the barista would be making, for the message
+           we show once the ten minutes are up */
+        drinks: items.filter(i => i.category === 'drinks')
+                     .reduce((n, i) => n + i.qty, 0)
+      };
+    });
+  },
+
+  /* --- cancel an order, if it is still early enough ---
+     The database has the final say: a trigger checks the window and
+     refuses anything but a cancellation, so a stale page cannot slip
+     one through. */
+  async cancelOrder(code){
+    if(!this._user) return {error:{message:'Not signed in'}};
+    const {error} = await sb.from('orders')
+      .update({status:'cancelled'})
+      .eq('code', code)
+      .eq('user_id', this._user.id);
+    return {error};
   }
 };
 
