@@ -106,10 +106,24 @@ petals, or add other page names to put it back on more pages.
 
 **The hero video** is `media/matcha.mp4`, played muted on a loop behind the
 home hero. A beige veil over it is clear in the middle and solid at every edge,
-so the footage dissolves into the page and is gone before the next section. The
-layer stays behind an opaque beige lid until the video is actually running, so
-no blank box is ever visible. To swap the clip, drop a new .mp4 in `media/` and
-change the `<source src>` in `home.html`.
+so the footage dissolves into the page and is gone before the next section.
+
+It starts the moment the page does, and two things had to change for that.
+`startHeroVideo()` used to be called after `await AppReady`, so a muted
+background loop sat waiting for the Supabase session, profile, basket and
+addresses - four round trips, measured at 3.2 seconds on a normal connection -
+before it was even asked to play. It now runs at about 30ms, before any of
+that. It also used to lift the beige lid only on the video's `playing` event,
+which is wrong twice over: that event needs megabytes of a fragmented mp4 to
+arrive first, and on a fast connection it can fire *before* the listener is
+attached, in which case the lid never lifted at all.
+
+The gap is covered by `media/matcha-poster.jpg` - the clip's own first frame,
+18KB, preloaded in the `<head>` and set as the video's `poster`. It is on
+screen within about 25ms, so the hero looks right immediately and the video
+simply takes over when it is ready. To swap the clip, drop a new .mp4 in
+`media/`, change the `<source src>` in `home.html`, and grab a fresh poster
+frame from it (any single frame near the start will do).
 
 **The theme** lives entirely in the tokens at the top of `css/style.css`. The
 seven brand colours are unchanged; what changed is their roles — the greens are

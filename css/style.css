@@ -599,17 +599,18 @@ p{margin:0;}
   overflow:hidden;
   pointer-events:none;        /* the video is decoration, never clickable */
 }
-/* A solid beige lid over the player until it is genuinely playing, so a
-   buffering spinner is never seen. It has to be a COVER rather than
-   opacity on the layer itself: Chrome treats a transparent element as
-   hidden and refuses to start the video, which would deadlock - never
-   playing, so never revealed. See startHeroVideo() in js/home.js. */
+/* A solid beige lid over the player for the first moment, so no empty box
+   is ever seen. It has to be a COVER rather than opacity on the layer
+   itself: Chrome treats a transparent element as hidden and refuses to
+   start the video, which would deadlock - never playing, so never
+   revealed. It lifts as soon as the page is up, because the poster frame
+   is already standing in. See startHeroVideo() in js/home.js. */
 .hero__cover{
   position:absolute;
   inset:0;
   background:var(--paper);
   opacity:1;
-  transition:opacity 1.6s var(--ease);
+  transition:opacity .7s var(--ease);
 }
 .hero__video.is-ready .hero__cover{opacity:0;}
 .hero__video video{

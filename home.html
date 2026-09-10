@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<!-- the hero's first frame, fetched straight away so the hero looks right
+     while the 8MB clip behind it is still arriving -->
+<link rel="preload" as="image" href="media/matcha-poster.jpg">
 </head>
 <body data-page="home">
 
@@ -17,9 +20,12 @@
   <section class="hero">
 
     <!-- Background video: our own file in media/, played on loop with no
-         sound. To change it, drop a new .mp4 in media/ and update the src. -->
+         sound. The poster is the clip's own first frame, so the hero is
+         never empty while the video downloads. To change the clip, drop a
+         new .mp4 in media/, update the src, and grab a new poster frame. -->
     <div class="hero__video" aria-hidden="true">
-      <video id="heroVideo" autoplay muted loop playsinline preload="auto" tabindex="-1">
+      <video id="heroVideo" autoplay muted loop playsinline preload="auto"
+             poster="media/matcha-poster.jpg" tabindex="-1">
         <source src="media/matcha.mp4" type="video/mp4">
       </video>
       <span class="hero__veil"></span>

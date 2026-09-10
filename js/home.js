@@ -3,6 +3,18 @@
    The category grid now lives on categories.html.
    ============================================================ */
 
+/* The video starts first, before anything else on the page.
+
+   It used to be kicked off at the end of the block below, which meant
+   it sat waiting on AppReady - the Supabase session, basket and saved
+   addresses - so the clip only began once the network came back. A
+   muted background loop has no reason to know who is signed in. */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', startHeroVideo, {once:true});
+} else {
+  startHeroVideo();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await AppReady;          /* session + basket are loaded by app.js */
 
@@ -16,15 +28,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     `${timeOfDay}, ${user.name.split(' ')[0]}`;
 
   revealOnScroll('.door');
-  startHeroVideo();
 });
 
 /* ============================================================
    The hero background video.
 
    The clip is our own file in media/, so it just autoplays muted on a
-   loop. The layer still sits behind an opaque beige lid until the video
-   is genuinely running, so nobody sees a blank box while it loads.
+   loop. A poster frame stands in while the file arrives, so the hero
+   looks right from the first moment and then starts moving, instead of
+   showing a flat beige box and catching up later.
    ============================================================ */
 function startHeroVideo(){
   const layer = document.querySelector('.hero__video');
@@ -37,14 +49,17 @@ function startHeroVideo(){
     return;
   }
 
-  const reveal = () => layer.classList.add('is-ready');
-  video.addEventListener('playing', reveal, {once:true});
+  /* Off with the lid straight away. It used to wait for the "playing"
+     event, which was wrong twice over: that event needs megabytes of a
+     fragmented mp4 to arrive first, and on a fast connection it can fire
+     before this code even runs - and a listener added afterwards never
+     hears it, so the lid stayed shut over a video already playing
+     underneath. There is nothing to hide now in any case, because the
+     poster frame is standing in until the clip catches up. */
+  layer.classList.add('is-ready');
 
-  /* the autoplay attribute is usually enough, but a few browsers only
-     start on an explicit play(). If they refuse it anyway, show the
-     first frame rather than leaving the lid closed on a beige box. */
+  /* autoplay usually starts it, but a few browsers only start on an
+     explicit play(). If one refuses outright the poster simply stays. */
   const started = video.play();
-  if(started && started.catch){
-    started.catch(() => video.addEventListener('loadeddata', reveal, {once:true}));
-  }
+  if(started && started.catch) started.catch(() => {});
 }
