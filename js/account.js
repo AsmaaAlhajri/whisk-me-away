@@ -34,24 +34,36 @@ function tooLateMessage(order){
 }
 
 /* In a real shop the kitchen updates the status. There is no back office
-   here, so the demo moves an order along by itself - it stays "preparing"
-   for exactly as long as it can still be cancelled, so the badge and the
-   button never contradict each other, then ships, then arrives. */
-const SHIPPED_EXTRA_MINUTES = 30;
+   here, so the demo moves an order along by itself. How long it spends
+   being prepared depends on what is in it: drinks are quick, a parcel of
+   equipment takes longer, and an order with both waits for the packing. */
+const PREPARING_DRINKS_ONLY = 25;
+const PREPARING_MIXED       = 45;
+const PREPARING_NO_DRINKS   = 75;
+const DELIVERING_MINUTES    = 5;
+
+function prepareMinutes(order){
+  const hasDrinks = order.drinks > 0;
+  const hasOther  = order.items.some(i => i.category !== 'drinks');
+  if(hasDrinks && hasOther) return PREPARING_MIXED;
+  if(hasDrinks)             return PREPARING_DRINKS_ONLY;
+  return PREPARING_NO_DRINKS;
+}
 
 function statusOf(order){
   if(order.status === 'cancelled') return 'cancelled';
   const minutes = minutesSince(order);
-  if(minutes < cancelMinutes(order))                       return 'preparing';
-  if(minutes < cancelMinutes(order) + SHIPPED_EXTRA_MINUTES) return 'shipped';
+  const prep    = prepareMinutes(order);
+  if(minutes < prep)                     return 'preparing';
+  if(minutes < prep + DELIVERING_MINUTES) return 'delivering';
   return 'delivered';
 }
 
 const STATUS_LABEL = {
-  preparing: 'Preparing',
-  shipped:   'On the way',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled'
+  preparing:  'Preparing',
+  delivering: 'Delivering',
+  delivered:  'Delivered',
+  cancelled:  'Cancelled'
 };
 
 /* "Block 4, Street 12, Avenue 3, House 21 - Salmiya, Hawalli" */

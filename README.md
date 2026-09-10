@@ -127,12 +127,18 @@ is why the page calls it illustrative.
 Each one is written as `.step:hover .thing { animation: ... }`, so nothing moves
 until you hover; `js/steps.js` only adds the same effect on tap for phones.
 
-**Order status** advances by itself in the demo: an order stays *preparing* for
-exactly as long as it can still be cancelled, then goes on the way, then
-delivered - so the badge and the cancel button never contradict each other. The
-numbers are at the top of `js/account.js`. The database stores a real `status`
-column, so swap `statusOf()` for that column once someone is actually updating
-orders.
+**Order status** advances by itself in the demo, and how long it spends being
+prepared depends on what is in the basket:
+
+| What she ordered | Preparing | Then delivering | Delivered after |
+|---|---|---|---|
+| Drinks only | 25 min | 5 min | 30 min |
+| Drinks *and* other items | 45 min | 5 min | 50 min |
+| No drinks at all | 1 hr 15 min | 5 min | 1 hr 20 min |
+
+Every order is on the road for the same five minutes. The four numbers are at
+the top of `js/account.js`. The database stores a real `status` column, so swap
+`statusOf()` for that column once someone is actually updating orders.
 
 **Cancelling an order.** Every order in My Account shows the day *and time* it
 was placed, and a Cancel order button counting down the minutes she has left.
@@ -151,6 +157,17 @@ time it was cancelled.
 
 The countdown repaints every thirty seconds, so a button fades while she is
 looking at the page rather than only after a reload.
+
+A cancelled order stays on the page for **a week** so she can see what happened,
+then it is cleared away with its order lines. That is a `pg_cron` job in
+Supabase - `purge-cancelled-orders`, hourly at seventeen minutes past - calling
+`purge_cancelled_orders()`. Hourly rather than daily only so that "a week" is
+accurate to the hour. To look at it:
+
+```sql
+select * from cron.job where jobname = 'purge-cancelled-orders';
+select * from cron.job_run_details order by start_time desc limit 5;
+```
 
 None of that is left to the browser. A `guard_order_update()` trigger on
 `orders` re-checks the window against `placed_at` and refuses a late
