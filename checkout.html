@@ -32,35 +32,58 @@
 
       <form class="checkout__form" id="checkoutForm" novalidate>
 
-        <!-- ---------- delivery address ---------- -->
-        <fieldset class="opt">
+        <!-- ---------- saved addresses ---------- -->
+        <fieldset class="opt" id="addressPanel">
           <legend class="opt__head">
-            <span class="opt__label">Delivery address</span>
-            <span class="opt__note">Avenue is optional</span>
+            <span class="opt__label">My addresses</span>
+            <span class="opt__note" id="addrNote">&nbsp;</span>
           </legend>
 
-          <div class="field-grid">
-            <div class="field field--wide">
-              <label for="coArea">Area</label>
-              <input type="text" id="coArea" list="areaList" autocomplete="off"
-                     placeholder="Start typing, e.g. Salmiya" spellcheck="false">
-              <datalist id="areaList"></datalist>
+          <!-- saved address cards, injected by js/checkout.js -->
+          <div id="addrList"></div>
+
+          <button type="button" class="addr-add" id="addAddrBtn">
+            <span class="addr-add__plus" aria-hidden="true">+</span>
+            <span>Add an address</span>
+          </button>
+
+          <!-- shown when adding a new address or editing one -->
+          <div class="addr-form" id="addrForm" hidden>
+            <div class="field-grid">
+              <div class="field field--wide">
+                <label for="adLabel">Name this address</label>
+                <input type="text" id="adLabel" maxlength="24"
+                       placeholder="Home, Work, Mum&rsquo;s...">
+              </div>
+              <div class="field field--wide">
+                <label for="adArea">Area</label>
+                <input type="text" id="adArea" list="areaList" autocomplete="off"
+                       placeholder="Start typing, e.g. Salmiya" spellcheck="false">
+                <datalist id="areaList"></datalist>
+              </div>
+              <div class="field">
+                <label for="adBlock">Block</label>
+                <input type="text" id="adBlock" placeholder="e.g. 4" maxlength="12">
+              </div>
+              <div class="field">
+                <label for="adStreet">Street</label>
+                <input type="text" id="adStreet" placeholder="e.g. 12" maxlength="60">
+              </div>
+              <div class="field">
+                <label for="adAvenue">Avenue <span class="field__hint">optional</span></label>
+                <input type="text" id="adAvenue" placeholder="e.g. 3" maxlength="40">
+              </div>
+              <div class="field">
+                <label for="adHouse">House / building</label>
+                <input type="text" id="adHouse" placeholder="e.g. 21, Flat 3" maxlength="40">
+              </div>
             </div>
-            <div class="field">
-              <label for="coBlock">Block</label>
-              <input type="text" id="coBlock" placeholder="e.g. 4" maxlength="12" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label for="coStreet">Street</label>
-              <input type="text" id="coStreet" placeholder="e.g. 12 or Salem Al-Mubarak" maxlength="60">
-            </div>
-            <div class="field">
-              <label for="coAvenue">Avenue <span class="field__hint">optional</span></label>
-              <input type="text" id="coAvenue" placeholder="e.g. 3" maxlength="40">
-            </div>
-            <div class="field">
-              <label for="coHouse">House / building</label>
-              <input type="text" id="coHouse" placeholder="e.g. 21, Flat 3" maxlength="40">
+
+            <p class="form-msg" id="addrMsg" role="status" aria-live="polite"></p>
+
+            <div class="edit-form__actions">
+              <button type="button" class="btn btn--forest" id="saveAddrBtn">Save address</button>
+              <button type="button" class="btn btn--ghost" id="cancelAddrBtn">Cancel</button>
             </div>
           </div>
         </fieldset>

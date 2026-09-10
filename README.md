@@ -48,7 +48,7 @@ js/story.js         the five growing regions and the map pins
 js/steps.js         tap-to-play for the step animations (hover is pure CSS)
 js/customise.js     the milk / foam / syrup / size options page
 js/supabase.js      database connection (publishable key, safe to commit)
-js/checkout.js      address + gift, and writing the order
+js/checkout.js      the address book, the gift option, writing the order
 js/account.js       details + orders
 media/matcha.mp4    the looping video behind the home hero
 ```
@@ -61,14 +61,24 @@ key - both are safe in front-end code, because every table is protected by Row
 Level Security keyed on `auth.uid()`. Someone who reads the page source and
 calls the API with that key gets an empty list back; writes are refused.
 
-Tables: `profiles` (name, phone, area), `cart_items` (one row per configured
-basket line), `orders` and `order_items`. A trigger on signup copies name,
-phone and area into `profiles` automatically.
+Tables: `profiles` (name, phone, area), `addresses` (up to four saved
+addresses per customer), `cart_items` (one row per configured basket line),
+`orders` and `order_items`. A trigger on signup copies name, phone and area
+into `profiles` automatically.
 
 **Login is real.** Supabase Auth hashes and checks passwords on its servers -
 the site never sees or stores one. Note that Supabase deliberately will not say
 whether a failed login was a wrong email or a wrong password, so the error
 message covers both.
+
+**Google and Apple sign-in.** The login page carries both buttons and the code
+behind them is finished, but they only work once the providers are switched on
+in the Supabase dashboard — see *Two settings to check in Supabase* below. Until
+then `js/auth.js` asks Supabase which providers are actually enabled (a single
+call to `/auth/v1/settings` at page load), greys out any that are not, and says
+so plainly if one is clicked. That check exists because `signInWithOAuth()`
+navigates the whole browser to Supabase before any error handler could run, so
+without it a curious customer would land on a raw JSON error page.
 
 The rest of the app is written synchronously, so `js/app.js` loads the session
 and basket once at boot and exposes an `AppReady` promise. Every page script
@@ -167,10 +177,31 @@ some landlines). `cleanPhone()` strips a `+965` prefix and anything non-numeric;
 number is refused rather than quietly trimmed into a different number. The
 database enforces the same rule with a CHECK constraint.
 
-**Checkout** collects area, block, street, avenue (optional) and house. Tick the gift box and the recipient's name and mobile become required,
-plus an optional note capped at 250 characters. All of that is enforced twice:
-in `js/checkout.js` for a helpful message, and by CHECK constraints on the
-`orders` table so a bad row cannot be written even by hand.
+**Saved addresses.** A customer types an address once. It is stored in the
+`addresses` table under her own name — Home, Work, Mum's — and every later
+checkout just offers it back. The My addresses panel at the top of the checkout
+page shows what she has saved: pick one with the radio, edit one with the pen,
+delete one with the bin, or add another with the **+**. Deleting takes two
+clicks — the first arms the bin for three seconds — so a stray tap never throws
+an address away.
+
+Four is the limit, and the limit is real: the **+** button hides at four, and an
+`enforce_address_limit()` trigger on the table refuses a fifth even if the
+request is made by hand. Each address carries a label, area, block, street,
+avenue (optional) and house.
+
+The address a customer picks is **copied** onto the order rather than pointed
+at, so editing or deleting an address later never rewrites where a past order
+actually went. `MAX_ADDRESSES` is at the top of `js/app.js`; the address book
+itself is `renderAddresses()` in `js/checkout.js`.
+
+**Gifts.** Tick the gift box and the recipient's name and mobile become
+required, plus an optional note capped at 250 characters — and the address panel
+goes quiet, because a gift is delivered to the recipient and her address is not
+ours to ask for. All of it is enforced twice: in `js/checkout.js` for a helpful
+message, and by CHECK constraints on the `orders` table so a bad row cannot be
+written even by hand. The address constraint is `orders_address_unless_gift`:
+an order needs a full address *unless* it is a gift.
 
 ## Palette
 
@@ -192,16 +223,25 @@ Browsers cache `.js` and `.css` hard on `localhost`. If a change does not show
 up, do a hard refresh: **Ctrl+F5** (or Ctrl+Shift+R). A normal refresh will often
 serve you the old file.
 
-## One setting to check in Supabase
+## Two settings to check in Supabase
 
-New Supabase projects require customers to confirm their email before they can
-log in. To keep signup instant, turn it off:
+**1. Email confirmation.** New Supabase projects require customers to confirm
+their email before they can log in. To keep signup instant, turn it off:
 
 **Supabase dashboard → Authentication → Sign In / Providers → Email →
 turn off "Confirm email" → Save.**
 
 The code copes either way: if confirmation is on, signup says to check your
 inbox instead of logging you straight in.
+
+**2. Google and Apple.** Both buttons are on the login page already, but they
+stay greyed out until the providers are enabled under **Authentication → Sign
+In / Providers**. Each one needs credentials from the provider itself: a Google
+Cloud Console OAuth client for Google, and a Services ID plus key from the Apple
+Developer program for Apple (Apple's costs an annual membership fee, Google's is
+free). Paste the client ID and secret into Supabase, add the Supabase callback
+URL to the provider's allowed redirects, and the buttons start working with no
+change to this code.
 
 ## Still worth knowing
 

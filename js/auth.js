@@ -42,6 +42,59 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await AppReady;
 
+  /* ---------- GOOGLE / APPLE ----------
+     signInWithOAuth sends the browser straight to Supabase, which
+     answers a bare JSON error page if the provider is not switched
+     on - so we ask Supabase which providers are enabled FIRST and
+     only redirect when one really is. The buttons light up on their
+     own the moment a provider is enabled in the dashboard; no code
+     change needed here. */
+  let providerCache = null;
+  async function enabledProviders(){
+    if(providerCache) return providerCache;
+    try{
+      const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+        headers:{ apikey: SUPABASE_KEY }
+      });
+      providerCache = (await r.json()).external || {};
+    }catch(e){
+      providerCache = {};
+    }
+    return providerCache;
+  }
+
+  const oauthButtons = [...document.querySelectorAll('[data-oauth]')];
+  if(oauthButtons.length){
+    /* mark the ones that are not set up yet */
+    enabledProviders().then(ext => {
+      oauthButtons.forEach(btn => {
+        if(!ext[btn.dataset.oauth]) btn.classList.add('is-off');
+      });
+    });
+
+    oauthButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const provider = btn.dataset.oauth;
+        const nice = provider === 'apple' ? 'Apple' : 'Google';
+
+        btn.disabled = true;
+        const ext = await enabledProviders();
+
+        if(!ext[provider]){
+          btn.disabled = false;
+          return say(`${nice} sign-in is not switched on for this shop yet.`);
+        }
+
+        const {error} = await sb.auth.signInWithOAuth({
+          provider,
+          options:{ redirectTo: new URL('home.html', location.href).href }
+        });
+        btn.disabled = false;
+        if(error) say(error.message);
+      });
+    });
+  }
+
   /* ---------- LOGIN ---------- */
   const loginForm = document.getElementById('loginForm');
   if(loginForm){

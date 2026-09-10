@@ -521,6 +521,31 @@ p{margin:0;}
 }
 .auth-swap p{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;}
 
+/* ---- Google / Apple sign in ---- */
+.oauth{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.oauth__btn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  padding:13px 10px;
+  border-radius:var(--radius-pill);
+  border:1px solid rgba(46,70,35,.24);
+  background:var(--card);
+  color:var(--ink);
+  font-size:13px;
+  letter-spacing:.04em;
+  transition:background .25s var(--ease),border-color .25s var(--ease),
+             transform .25s var(--ease),box-shadow .25s var(--ease);
+}
+.oauth__btn svg{width:18px;height:18px;flex:none;}
+.oauth__btn:hover{
+  transform:translateY(-2px);
+  border-color:var(--pine);
+  box-shadow:var(--shadow-soft);
+}
+.oauth__btn:disabled{opacity:.55;transform:none;}
+/* provider not configured in Supabase yet - still clickable, and it
+   explains itself rather than failing silently */
+.oauth__btn.is-off{opacity:.5;}
+
 /* ---------- 9. PAGE SHELL ---------- */
 .page{
   position:relative;
@@ -1637,6 +1662,115 @@ p{margin:0;}
   padding:5px 10px;border-radius:var(--radius-pill);
   background:var(--blush);color:var(--forest);
 }
+
+/* ---- the address book on checkout ---- */
+.addr{
+  display:flex;
+  align-items:stretch;
+  gap:8px;
+  border:1px solid var(--line);
+  border-radius:var(--radius-m);
+  background:var(--wash);
+  margin-bottom:9px;
+  transition:border-color .25s var(--ease),background .25s var(--ease);
+}
+.addr.is-picked{
+  background:var(--mist);
+  border-color:var(--blush);
+  box-shadow:inset 0 0 0 1px var(--blush);
+}
+.addr__pick{
+  flex:1;
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  padding:13px 4px 13px 15px;
+  cursor:pointer;
+  min-width:0;
+}
+.addr__pick input{
+  margin-top:3px;
+  accent-color:var(--pine);
+  flex:none;
+}
+.addr__body{min-width:0;}
+.addr__label{
+  display:block;
+  font-size:14.5px;
+  font-weight:500;
+  color:var(--forest);
+}
+.addr__lines{
+  display:block;
+  font-size:12px;
+  line-height:1.5;
+  color:var(--ink-soft);
+  margin-top:3px;
+}
+.addr__tools{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  padding-right:8px;
+}
+.addr__tool{
+  width:34px;height:34px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  color:var(--pine);
+  transition:background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease);
+}
+.addr__tool svg{width:17px;height:17px;}
+.addr__tool:hover{background:rgba(46,70,35,.10);transform:translateY(-1px);}
+.addr__tool--del:hover{background:rgba(170,60,60,.14);color:#A44;}
+/* armed: one more click actually deletes */
+.addr__tool.is-armed{background:#A44;color:var(--cream);}
+
+.addr-empty{
+  font-size:13px;
+  line-height:1.6;
+  color:var(--ink-soft);
+  padding:14px 16px;
+  border:1px dashed rgba(46,70,35,.22);
+  border-radius:var(--radius-m);
+  margin-bottom:10px;
+}
+
+.addr-add{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:12px 16px;
+  border-radius:var(--radius-m);
+  border:1px dashed rgba(46,70,35,.28);
+  background:transparent;
+  color:var(--pine);
+  font-size:13px;
+  letter-spacing:.04em;
+  transition:background .25s var(--ease),border-color .25s var(--ease);
+}
+.addr-add:hover{background:var(--wash);border-color:var(--pine);}
+.addr-add__plus{
+  width:24px;height:24px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:var(--blush);
+  color:var(--forest);
+  font-size:16px;
+  line-height:1;
+  flex:none;
+}
+
+.addr-form{
+  margin-top:12px;
+  padding-top:14px;
+  border-top:1px dashed rgba(46,70,35,.22);
+}
+
+/* a gift needs no address of ours, so the panel steps back */
+#addressPanel.is-optional{opacity:.62;}
+#addressPanel.is-optional .addr-add{border-style:dotted;}
 
 /* ---- editing the account details ---- */
 .edit-form{margin-top:4px;}

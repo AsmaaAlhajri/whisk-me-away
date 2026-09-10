@@ -20,9 +20,12 @@
    Writes update memory immediately and push to Supabase right
    after, so the interface never waits on the network.
    ============================================================ */
+const MAX_ADDRESSES = 4;
+
 const Store = {
   _user: null,
   _cart: [],
+  _addresses: [],
   _pushing: null,
 
   /* --- who is signed in --- */
@@ -49,6 +52,7 @@ const Store = {
     };
 
     await this.loadCart();
+    await this.loadAddresses();
     return this._user;
   },
 
@@ -56,6 +60,49 @@ const Store = {
     await sb.auth.signOut();
     this._user = null;
     this._cart = [];
+    this._addresses = [];
+  },
+
+  /* --- saved addresses (at most MAX_ADDRESSES, enforced in the
+         database too so the cap holds however it is reached) --- */
+  addresses(){ return this._addresses; },
+
+  async loadAddresses(){
+    if(!this._user){ this._addresses = []; return; }
+    const {data} = await sb.from('addresses')
+      .select('id,label,area,block,street,avenue,house')
+      .eq('user_id', this._user.id)
+      .order('created_at');
+    this._addresses = data || [];
+  },
+
+  async addAddress(fields){
+    if(!this._user) return {error:{message:'not signed in'}};
+    const {data, error} = await sb.from('addresses')
+      .insert({...fields, user_id: this._user.id})
+      .select('id,label,area,block,street,avenue,house')
+      .single();
+    if(error) return {error};
+    this._addresses.push(data);
+    return {data};
+  },
+
+  async updateAddress(id, fields){
+    const {data, error} = await sb.from('addresses')
+      .update(fields).eq('id', id)
+      .select('id,label,area,block,street,avenue,house')
+      .single();
+    if(error) return {error};
+    const i = this._addresses.findIndex(a => a.id === id);
+    if(i > -1) this._addresses[i] = data;
+    return {data};
+  },
+
+  async removeAddress(id){
+    const {error} = await sb.from('addresses').delete().eq('id', id);
+    if(error) return {error};
+    this._addresses = this._addresses.filter(a => a.id !== id);
+    return {};
   },
 
   /* --- the basket --- */
