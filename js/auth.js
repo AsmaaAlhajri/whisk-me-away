@@ -16,6 +16,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  /* ----------------------------------------------------------------
+     The lock beside a password field is a button. Click it and the
+     password is readable for three seconds, then it hides itself -
+     long enough to check a typo, short enough that a password is
+     never left sitting on a screen someone else can see.
+  ---------------------------------------------------------------- */
+  const PEEK_SECONDS = 3;
+
+  document.querySelectorAll('[data-peek]').forEach(btn => {
+    const input = btn.closest('.field').querySelector('input');
+    if(!input) return;
+    let timer = null;
+
+    function hide(){
+      clearTimeout(timer);
+      timer = null;
+      input.type = 'password';
+      btn.classList.remove('is-open');
+      btn.setAttribute('aria-label', 'Show the password for three seconds');
+    }
+
+    btn.addEventListener('click', () => {
+      if(timer) return hide();            /* a second click hides it early */
+      input.type = 'text';
+      btn.classList.add('is-open');
+      btn.setAttribute('aria-label', 'Hide the password');
+      timer = setTimeout(hide, PEEK_SECONDS * 1000);
+    });
+
+    /* never leave a password showing once she has moved on */
+    input.addEventListener('blur', hide);
+  });
+
   const msg = document.getElementById('msg');
   const say = (text, ok = false) => {
     msg.textContent = text;

@@ -71,6 +71,13 @@ the site never sees or stores one. Note that Supabase deliberately will not say
 whether a failed login was a wrong email or a wrong password, so the error
 message covers both.
 
+**Peeking at a password.** The lock beside a password field is a button. Click
+it and the password is readable for three seconds, then it hides itself again -
+long enough to check a typo, short enough that a password is never left sitting
+on a screen someone else can see. The lock swings open while it shows, a second
+click hides it early, and moving focus away hides it immediately. Three seconds
+is `PEEK_SECONDS` at the top of that block in `js/auth.js`.
+
 **Google and Apple sign-in.** The login page carries both buttons and the code
 behind them is finished, but they only work once the providers are switched on
 in the Supabase dashboard — see *Two settings to check in Supabase* below. Until
